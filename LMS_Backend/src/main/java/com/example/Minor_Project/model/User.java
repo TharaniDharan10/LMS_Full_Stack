@@ -45,8 +45,6 @@ public class User implements Serializable, UserDetails { //we implement Serialis
 //    @Column(unique = true, length = 15) // we didnot mention nullable bcoz i want phNo to be optional in my case
     String phoneNo;
 
-    String temp;
-
     String address; // length by default is 255
 
     @Enumerated(value = EnumType.STRING) //(this class doesnot know that there is a enum already present,so we add this.If we didnot mention this value ,then by default ,ORDINAL number will be stored in DB.Making it string will make it get stored in DB as ADMIN and STUDENT

@@ -1,6 +1,7 @@
 package com.example.Minor_Project.controller;
 
 import com.example.Minor_Project.dto.AddUserRequest;
+import com.example.Minor_Project.dto.UserUpdateRequest;
 import com.example.Minor_Project.model.User;
 import com.example.Minor_Project.service.UserService;
 import jakarta.validation.Valid;
@@ -37,5 +38,12 @@ public class UserController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
         return userService.fetchUserByEmail(user.getUsername());
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<User> updateUser(@RequestBody UserUpdateRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User updatedUser = userService.updateUserProfile(authentication.getName(), request);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 }

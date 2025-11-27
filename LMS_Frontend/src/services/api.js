@@ -59,6 +59,17 @@ export const api = {
     });
   },
   
+  updateProfile: (data, auth) => {
+    const base64Credentials = btoa(`${auth.username}:${auth.password}`);
+    return fetch(`${API_BASE_URL}/user/update`, {
+      method: 'PUT',
+      headers: { 
+        'Authorization': `Basic ${base64Credentials}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+  },
 
 
   getBooks: (auth, title = '', type = '', author = '', status = '') => {

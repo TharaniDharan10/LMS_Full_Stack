@@ -67,6 +67,7 @@
 package com.example.Minor_Project.service;
 
 import com.example.Minor_Project.dto.AddUserRequest;
+import com.example.Minor_Project.dto.UserUpdateRequest;
 import com.example.Minor_Project.enums.UserType;
 import com.example.Minor_Project.mapper.UserMapper;
 import com.example.Minor_Project.model.User;
@@ -155,5 +156,16 @@ public class UserService implements UserDetailsService {
             }
         }
         return savedUser;
+    }
+
+    public User updateUserProfile(String email, UserUpdateRequest request) {
+        User user = userRepository.findByEmail(email);
+        if (user != null) {
+            if(request.getName() != null && !request.getName().isEmpty()) user.setName(request.getName());
+            if(request.getPhoneNo() != null && !request.getPhoneNo().isEmpty()) user.setPhoneNo(request.getPhoneNo());
+            if(request.getAddress() != null && !request.getAddress().isEmpty()) user.setAddress(request.getAddress());
+            return userRepository.save(user);
+        }
+        return null;
     }
 }
