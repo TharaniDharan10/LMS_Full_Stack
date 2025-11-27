@@ -57,11 +57,13 @@ public class BookService {
         return bookRepository.findBookByBookNo(bookNo);
     }
 
-    public List<Book> getBooks(String bookTitle, String bookType) {
+    // --- UPDATED: Accepts Author and Status for Advanced Search ---
+    public List<Book> getBooks(String bookTitle, String bookType, String author, String status) {
 
-        log.info("I am in bookService");
+        log.info("I am in bookService. Searching for Title: {}, Type: {}, Author: {}, Status: {}", bookTitle, bookType, author, status);
+
+        // 1. Convert String to Enum (BookType)
         BookType type = null;
-        // Logic: Only convert if the string is not empty
         if (bookType != null && !bookType.trim().isEmpty()) {
             try {
                 type = BookType.valueOf(bookType);
@@ -70,11 +72,22 @@ public class BookService {
             }
         }
 
+        // 2. Convert String to Boolean (Issued Status)
+        // Logic: "ISSUED" = true, "AVAILABLE" = false, Empty/Null = null (ignore filter)
+        Boolean isIssued = null;
+        if (status != null && !status.trim().isEmpty()) {
+            if ("ISSUED".equalsIgnoreCase(status)) {
+                isIssued = true;
+            } else if ("AVAILABLE".equalsIgnoreCase(status)) {
+                isIssued = false;
+            }
+        }
 
-        List<Book> res = bookRepository.findBookByFilters(bookTitle,type);
-        log.info("I am returning from bookService");
+        // 3. Call Repository with all 4 filters
+        List<Book> res = bookRepository.findBookByFilters(bookTitle, type, author, isIssued);
+
+        log.info("I am returning from bookService with {} books found", res.size());
         return res;
-
     }
 
     public void deleteBook(String bookNo) {

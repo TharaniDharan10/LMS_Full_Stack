@@ -59,14 +59,19 @@ export const api = {
     });
   },
   
-  getBooks: (auth, title = '', type = '') => {
-    const params = new URLSearchParams();
-    if (title) params.append('title', title);
-    if (type) params.append('type', type);
-    const base64Credentials = btoa(`${auth.username}:${auth.password}`);
-    return fetch(`${API_BASE_URL}/book/all?${params}`, {
-      headers: { 'Authorization': `Basic ${base64Credentials}` }
-    });
+
+
+  getBooks: (auth, title = '', type = '', author = '', status = '') => {
+      const params = new URLSearchParams();
+      if (title) params.append('title', title);
+      if (type) params.append('type', type);
+      if (author) params.append('author', author); // New
+      if (status) params.append('status', status); // New
+      
+      const base64Credentials = btoa(`${auth.username}:${auth.password}`);
+      return fetch(`${API_BASE_URL}/book/all?${params}`, {
+        headers: { 'Authorization': `Basic ${base64Credentials}` }
+      });
   },
   
   addBook: (auth, data) => {

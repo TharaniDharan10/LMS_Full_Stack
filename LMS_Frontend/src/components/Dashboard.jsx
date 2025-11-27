@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, LogOut, Search, Plus, Book, ArrowLeftRight, UserPlus, Clock, Trash2, Sparkles, User, Feather, X, QrCode, Download, TrendingUp, Users, PieChart as PieIcon, CreditCard, Loader, Camera } from 'lucide-react'; 
+import { BookOpen, LogOut, Search, Plus, Book, ArrowLeftRight, UserPlus, Clock, Trash2, Sparkles, User, Feather, X, QrCode, Download, TrendingUp, Users, PieChart as PieIcon, CreditCard, Loader, Camera, Wallet, ShieldCheck } from 'lucide-react'; 
 import { api } from '../services/api';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { QRCodeCanvas } from 'qrcode.react'; 
@@ -18,12 +18,10 @@ const dashboardStyles = `
   .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
   .custom-scroll::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.3); border-radius: 10px; }
   
-  /* MANUSCRIPT STYLES WITH PIRATE SKULL WATERMARK */
   .manuscript-paper {
     background-color: #fdf6e3; 
-    /* Layer 1: Pirate Skull SVG (Center), Layer 2: Paper Texture (Repeat) */
     background-image: 
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='rgba(139, 69, 19, 0.15)'%3E%3Cpath d='M12 2c-4.97 0-9 4.03-9 9 0 1.59.45 3.08 1.23 4.37L2.5 17.13c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.74-1.74C7.34 18.65 9.56 20 12 20s4.66-1.35 6.35-3.2l1.74 1.74c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-1.73-1.76C20.55 14.08 21 12.59 21 11c0-4.97-4.03-9-9-9zm-3 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z'/%3E%3Cpath d='M14 11a2 2 0 1 1-4 0 2 2 0 0 1 4 0z' fill='black' opacity='0.8'/%3E%3Cpath d='M4 4l16 16' stroke='rgba(139, 69, 19, 0.15)' stroke-width='2'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='rgba(139, 69, 19, 0.15)'%3E%3Cpath d='M12 2c-4.97 0-9 4.03-9 9 0 1.59.45 3.08 1.23 4.37L2.5 17.13c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.74-1.74C7.34 18.65 9.56 20 12 20s4.66-1.35 6.35-3.2l1.74 1.74c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-1.73-1.76C20.55 14.08 21 12.59 21 11c0-4.97-4.03-9-9-9zm-3 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z'/%3E%3Cpath d='M14 11a2 2 0 1 1-4 0 2 2 0 0 1 4 0z' fill='black' opacity='0.1'/%3E%3Cpath d='M4 4l16 16' stroke='rgba(139, 69, 19, 0.15)' stroke-width='2'/%3E%3C/svg%3E"),
         radial-gradient(#dcc096 1px, transparent 1px);
     background-size: 50% auto, 20px 20px;
     background-repeat: no-repeat, repeat;
@@ -68,12 +66,9 @@ const QrPrintModal = ({ book, onClose }) => {
         if(canvas) {
             const pngUrl = canvas.toDataURL("image/png");
             const downloadLink = document.createElement("a");
-            
-            // --- FIX: Custom Filename Format ---
             const safeTitle = book.bookTitle.replace(/\s+/g, '_');
             downloadLink.href = pngUrl;
             downloadLink.download = `${safeTitle}_${book.bookNo}_${book.bookType}.png`;
-            
             document.body.appendChild(downloadLink);
             downloadLink.click();
             document.body.removeChild(downloadLink);
@@ -105,7 +100,7 @@ const BookDetailModal = ({ book, onClose }) => {
       <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in" onClick={onClose}>
         <div className="w-full max-w-lg relative transform transition-all hover:scale-[1.01]" onClick={e => e.stopPropagation()}>
           <div className="manuscript-paper p-12 relative min-h-[650px] flex flex-col">
-              <div className="text-center border-b-2 border-[#8b4513]/20 pb-4 mb-6 relative z-10">
+              <div className="text-center border-b-2 border-[#2a150a]/40 pb-4 mb-6 relative z-10">
                   <h2 className="text-4xl font-bold uppercase tracking-widest leading-tight">{book.bookTitle}</h2>
                   <div className="flex justify-center items-center gap-2 mt-3 italic text-lg">
                     <Feather className="w-5 h-5" /><span>{book.author?.name || book.authorName || 'Unknown Author'}</span>
@@ -117,11 +112,11 @@ const BookDetailModal = ({ book, onClose }) => {
                     {book.summary || "The pages of this ancient tome are too charred to read a summary..."}
                 </p>
               </div>
-              <div className="mt-8 pt-4 border-t border-[#8b4513]/20 flex justify-between text-base font-bold relative z-10">
-                  <span className="bg-[#8b4513]/10 px-3 py-1 rounded-sm">Ref: {book.bookNo}</span>
-                  <span className="bg-[#8b4513]/10 px-3 py-1 rounded-sm">Cost: ₹{book.securityAmount}</span>
+              <div className="mt-8 pt-4 border-t border-[#2a150a]/40 flex justify-between text-base font-bold relative z-10">
+                  <span className="bg-[#2a150a]/10 px-3 py-1 rounded-sm">Ref: {book.bookNo}</span>
+                  <span className="bg-[#2a150a]/10 px-3 py-1 rounded-sm">Cost: ₹{book.securityAmount}</span>
               </div>
-              <button onClick={onClose} className="absolute top-6 right-6 text-[#8b4513] hover:text-red-900 transition-colors hover:scale-110 z-20"><X className="w-8 h-8" strokeWidth={3}/></button>
+              <button onClick={onClose} className="absolute top-6 right-6 text-[#2a150a] hover:text-red-900 transition-colors hover:scale-110 z-20"><X className="w-8 h-8" strokeWidth={3}/></button>
           </div>
         </div>
       </div>
@@ -227,7 +222,6 @@ const TransactionModal = ({ type, user, isAdmin, initialBookNo, onClose, onSucce
                             containerStyle={{ width: '100%', height: '100%' }}
                             videoStyle={{ objectFit: 'cover' }}
                         />
-                        <div className="absolute inset-0 pointer-events-none flex flex-col justify-center items-center"><div className="w-48 h-48 border-2 border-white/30 rounded-lg relative"><div className="absolute top-0 left-0 w-full h-0.5 bg-green-400 shadow-[0_0_10px_#4ade80] animate-[scan_2s_linear_infinite]"></div></div><div className="mt-4 bg-black/50 px-3 py-1 rounded text-xs text-white backdrop-blur-sm">Align QR Code</div></div>
                         <button onClick={() => setScanMode(false)} className="absolute top-2 right-2 p-2 bg-black/50 hover:bg-red-600/80 rounded-full text-white transition"><X className="w-4 h-4"/></button>
                     </div>
                 ) : (
@@ -235,7 +229,8 @@ const TransactionModal = ({ type, user, isAdmin, initialBookNo, onClose, onSucce
                         <input type="email" placeholder="Student Email" value={formData.userEmail} onChange={e => setFormData({...formData, userEmail: e.target.value})} readOnly={!isAdmin} className={`w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white outline-none ${!isAdmin ? 'opacity-50' : ''}`} />
                         <div className="flex gap-2">
                             <input type="text" placeholder="Book No" value={formData.bookNo} onChange={e => setFormData({...formData, bookNo: e.target.value})} className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white outline-none" />
-                            {!initialBookNo && <button onClick={() => setScanMode(true)} className="p-2.5 bg-purple-600/80 hover:bg-purple-500 rounded-lg transition shadow-lg border border-purple-400/30" title="Scan QR Code"><Camera className="w-5 h-5 text-white"/></button>}
+                            {/* --- FIX: HIDE SCANNER FOR STUDENTS & IF BOOK IS PRE-SELECTED --- */}
+                            {isAdmin && !initialBookNo && <button onClick={() => setScanMode(true)} className="p-2.5 bg-purple-600/80 hover:bg-purple-500 rounded-lg transition shadow-lg border border-purple-400/30" title="Scan QR Code"><Camera className="w-5 h-5 text-white"/></button>}
                         </div>
                         <div className="flex gap-2 mt-4"><button onClick={initiateTransaction} className="flex-1 py-2 bg-blue-600 rounded-lg font-bold capitalize shadow-lg">{type === 'issue' ? 'Pay & Issue' : 'Return'}</button><button onClick={onClose} className="flex-1 py-2 bg-white/10 rounded-lg font-bold">Cancel</button></div>
                     </div>
@@ -252,14 +247,17 @@ export const Dashboard = ({ user, onLogout }) => {
   const [books, setBooks] = useState([]);
   const [transactions, setTransactions] = useState([]); 
   const [analytics, setAnalytics] = useState(null); 
+  
+  // Search States
   const [searchTitle, setSearchTitle] = useState('');
   const [searchType, setSearchType] = useState('');
+  const [searchAuthor, setSearchAuthor] = useState(''); // New for Advanced Search
+  const [searchStatus, setSearchStatus] = useState(''); // New for Advanced Search
+
   const [loading, setLoading] = useState(false);
   const [modals, setModals] = useState({ add: false, trans: false, admin: false });
   const [transactionType, setTransactionType] = useState('issue');
   const [selectedBookNo, setSelectedBookNo] = useState('');
-  
-  // Modals for Manuscript and QR
   const [viewingBook, setViewingBook] = useState(null);
   const [qrBook, setQrBook] = useState(null);
 
@@ -269,14 +267,25 @@ export const Dashboard = ({ user, onLogout }) => {
     if (activeTab === 'books') fetchBooks();
     if (activeTab === 'transactions') fetchTransactions();
     if (activeTab === 'analytics' && isAdmin) fetchAnalytics();
-  }, [activeTab, searchType]);
+  }, [activeTab, searchType, searchAuthor, searchStatus]); // Added new search params to dependency
 
-  const fetchBooks = async () => { setLoading(true); try { const res = await api.getBooks(user, searchTitle, searchType); if (res.ok) setBooks(await res.json()); } catch (e) {} finally { setLoading(false); } };
+  const fetchBooks = async () => { 
+      setLoading(true); 
+      try { 
+          // Pass all search params
+          const res = await api.getBooks(user, searchTitle, searchType, searchAuthor, searchStatus); 
+          if (res.ok) setBooks(await res.json()); 
+      } catch (e) {} finally { setLoading(false); } 
+  };
+  
   const fetchTransactions = async () => { setLoading(true); try { const res = await api.getTransactions(user); if (res.ok) setTransactions(await res.json()); } catch (e) {} finally { setLoading(false); } };
   const fetchAnalytics = async () => { setLoading(true); try { const res = await api.getAnalytics(user); if (res.ok) setAnalytics(await res.json()); } catch (e) {} finally { setLoading(false); } };
   const deleteBook = async (no) => { if(window.confirm(`Delete ${no}?`)) { await api.deleteBook(user, no); fetchBooks(); } };
 
-  // Helper for Pie Chart Data
+  // Calculate Profile Stats (Mock calculation from loaded data)
+  const getActiveLoans = () => transactions.filter(t => t.transactionStatus === 'ISSUED' && t.user?.email === user.email);
+  const getTotalFines = () => transactions.filter(t => t.user?.email === user.email && t.fineAmount > 0).reduce((acc, t) => acc + t.fineAmount, 0);
+
   const getPieData = () => {
     if (!analytics?.booksByType) return [];
     return Object.keys(analytics.booksByType).map(key => ({ name: key, value: analytics.booksByType[key] }));
@@ -301,45 +310,40 @@ export const Dashboard = ({ user, onLogout }) => {
         <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-8">
           <GlassCard className="inline-flex mb-8 !rounded-xl !p-1">
             <div className="p-1 flex gap-1">
-              {['books', 'transactions', ...(isAdmin ? ['analytics'] : [])].map(tab => (
+              {['books', 'transactions', 'profile', ...(isAdmin ? ['analytics'] : [])].map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)} className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold text-sm transition-all capitalize ${activeTab === tab ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
                   {tab === 'books' && <Book className="w-4 h-4"/>}
                   {tab === 'transactions' && <ArrowLeftRight className="w-4 h-4"/>}
                   {tab === 'analytics' && <TrendingUp className="w-4 h-4"/>}
+                  {tab === 'profile' && <User className="w-4 h-4"/>}
                   {tab === 'books' ? 'Collection' : tab}
                 </button>
               ))}
             </div>
           </GlassCard>
 
-          {/* BOOKS TAB */}
+          {/* BOOKS TAB (With Advanced Search) */}
           {activeTab === 'books' && (
             <div className="space-y-8 animate-fade-in">
-              <GlassCard className="!p-0"><div className="p-4 flex flex-wrap gap-4 items-center justify-between"><div className="flex flex-1 gap-3 min-w-[280px]"><div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4"/><input type="text" placeholder="Search titles..." value={searchTitle} onChange={e => setSearchTitle(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-sm text-white outline-none" /></div><select value={searchType} onChange={e => setSearchType(e.target.value)} className="px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-sm text-white outline-none cursor-pointer"><option value="">All Types</option><option value="PROGRAMMING">Programming</option><option value="HISTORY">History</option><option value="ENGLISH">English</option></select><button onClick={fetchBooks} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-sm shadow-lg">Go</button></div>{isAdmin && <div className="flex gap-3 pl-4 border-l border-white/10"><button onClick={() => setModals({...modals, add: true})} className="p-2.5 bg-green-500/20 text-green-300 border border-green-500/30 rounded-lg hover:bg-green-500/30 transition"><Plus className="w-5 h-5"/></button><button onClick={() => setModals({...modals, admin: true})} className="p-2.5 bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-lg hover:bg-purple-500/30 transition"><UserPlus className="w-5 h-5"/></button></div>}</div></GlassCard>
+              <GlassCard className="!p-0"><div className="p-4 flex flex-wrap gap-4 items-center justify-between">
+                  <div className="flex flex-1 gap-3 min-w-[280px] flex-wrap">
+                    {/* Title Search */}
+                    <div className="relative flex-1 min-w-[150px]"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4"/><input type="text" placeholder="Title..." value={searchTitle} onChange={e => setSearchTitle(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-sm text-white outline-none" /></div>
+                    {/* Author Search (NEW) */}
+                    <input type="text" placeholder="Author..." value={searchAuthor} onChange={e => setSearchAuthor(e.target.value)} className="px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-sm text-white outline-none min-w-[150px]" />
+                    {/* Category */}
+                    <select value={searchType} onChange={e => setSearchType(e.target.value)} className="px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-sm text-white outline-none cursor-pointer"><option value="">All Types</option><option value="PROGRAMMING">Programming</option><option value="HISTORY">History</option><option value="ENGLISH">English</option></select>
+                    {/* Availability (NEW) */}
+                    <select value={searchStatus} onChange={e => setSearchStatus(e.target.value)} className="px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-sm text-white outline-none cursor-pointer"><option value="">Any Status</option><option value="AVAILABLE">Available</option><option value="ISSUED">Issued</option></select>
+                    <button onClick={fetchBooks} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-sm shadow-lg">Go</button>
+                  </div>
+                  {isAdmin && <div className="flex gap-3 pl-4 border-l border-white/10"><button onClick={() => setModals({...modals, add: true})} className="p-2.5 bg-green-500/20 text-green-300 border border-green-500/30 rounded-lg hover:bg-green-500/30 transition"><Plus className="w-5 h-5"/></button><button onClick={() => setModals({...modals, admin: true})} className="p-2.5 bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-lg hover:bg-purple-500/30 transition"><UserPlus className="w-5 h-5"/></button></div>}
+              </div></GlassCard>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? <div className="col-span-full text-center py-20 text-blue-200/50 font-medium animate-pulse">Scanning shelves...</div> : books.map((book) => {
                   const isIssued = book.user !== null && book.user !== undefined;
                   const author = book.author?.name || book.authorName || 'Unknown';
-                  return (
-                  <GlassCard key={book.id || book.bookNo} onClick={() => setViewingBook(book)} className="hover:-translate-y-2 transition-transform duration-300 cursor-pointer">
-                    <div className="p-6 flex flex-col h-full">
-                        <div className="flex justify-between items-start mb-2">
-                            <span className="text-[10px] font-bold tracking-widest text-blue-300 uppercase bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20">{book.bookType}</span>
-                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                                {isAdmin && (
-                                    <button onClick={() => setQrBook(book)} className="text-gray-500 hover:text-purple-400 transition p-1.5 hover:bg-purple-500/10 rounded-full" title="Generate Label"><QrCode className="w-4 h-4"/></button>
-                                )}
-                                {isAdmin && <button onClick={() => deleteBook(book.bookNo)} className="text-gray-500 hover:text-red-400 transition p-1.5 hover:bg-red-500/10 rounded-full"><Trash2 className="w-4 h-4"/></button>}
-                            </div>
-                        </div>
-                        <h3 className="text-xl font-bold text-white leading-tight mb-1">{book.bookTitle}</h3>
-                        <div className="flex items-center gap-2 mb-6"><Feather className="w-3 h-3 text-blue-400" /><span className="text-sm font-semibold text-blue-200">{author}</span></div>
-                        <div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center text-xs text-gray-400 mb-4"><span>Ref: {book.bookNo}</span><span className="font-mono text-green-400 bg-green-500/10 px-2 py-0.5 rounded">₹{book.securityAmount}</span></div>
-                        <div onClick={(e) => e.stopPropagation()}>
-                            <button onClick={() => !isIssued && (setSelectedBookNo(book.bookNo), setTransactionType('issue'), setModals({...modals, trans: true}))} disabled={isIssued} className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${isIssued ? 'bg-black/30 text-gray-500 cursor-not-allowed border border-white/5' : 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg hover:shadow-blue-500/40'}`}>{isIssued ? <><Clock className="w-4 h-4"/> Issued</> : <><Sparkles className="w-4 h-4"/> Issue</>}</button>
-                        </div>
-                    </div>
-                  </GlassCard>);
+                  return (<GlassCard key={book.id || book.bookNo} onClick={() => setViewingBook(book)} className="hover:-translate-y-2 transition-transform duration-300 cursor-pointer"><div className="p-6 flex flex-col h-full"><div className="flex justify-between items-start mb-2"><span className="text-[10px] font-bold tracking-widest text-blue-300 uppercase bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20">{book.bookType}</span><div className="flex gap-1" onClick={(e) => e.stopPropagation()}>{isAdmin && (<button onClick={() => setQrBook(book)} className="text-gray-500 hover:text-purple-400 transition p-1.5 hover:bg-purple-500/10 rounded-full" title="Generate Label"><QrCode className="w-4 h-4"/></button>)}{isAdmin && <button onClick={() => deleteBook(book.bookNo)} className="text-gray-500 hover:text-red-400 transition p-1.5 hover:bg-red-500/10 rounded-full"><Trash2 className="w-4 h-4"/></button>}</div></div><h3 className="text-xl font-bold text-white leading-tight mb-1">{book.bookTitle}</h3><div className="flex items-center gap-2 mb-6"><Feather className="w-3 h-3 text-blue-400" /><span className="text-sm font-semibold text-blue-200">{author}</span></div><div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center text-xs text-gray-400 mb-4"><span>Ref: {book.bookNo}</span><span className="font-mono text-green-400 bg-green-500/10 px-2 py-0.5 rounded">₹{book.securityAmount}</span></div><div onClick={(e) => e.stopPropagation()}><button onClick={() => !isIssued && (setSelectedBookNo(book.bookNo), setTransactionType('issue'), setModals({...modals, trans: true}))} disabled={isIssued} className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${isIssued ? 'bg-black/30 text-gray-500 cursor-not-allowed border border-white/5' : 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg hover:shadow-blue-500/40'}`}>{isIssued ? <><Clock className="w-4 h-4"/> Issued</> : <><Sparkles className="w-4 h-4"/> Issue</>}</button></div></div></GlassCard>);
                 })}
               </div>
             </div>
@@ -355,7 +359,75 @@ export const Dashboard = ({ user, onLogout }) => {
             </div>
           )}
 
-          {/* ANALYTICS TAB */}
+          {/* NEW: PROFILE TAB */}
+          {activeTab === 'profile' && (
+              <div className="space-y-6 animate-fade-in">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* 1. User ID Card */}
+                      <GlassCard className="md:col-span-1">
+                          <div className="p-8 flex flex-col items-center text-center">
+                              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 p-1 mb-4 shadow-2xl">
+                                  <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center">
+                                      <User className="w-10 h-10 text-white"/>
+                                  </div>
+                              </div>
+                              <h2 className="text-2xl font-bold text-white">{user.name}</h2>
+                              <p className="text-blue-300 text-sm mb-6">{user.email}</p>
+                              <div className="w-full space-y-3">
+                                  <div className="flex justify-between text-sm p-3 bg-white/5 rounded-lg border border-white/5">
+                                      <span className="text-gray-400">Role</span>
+                                      <span className="text-white font-semibold">{isAdmin ? "Administrator" : "Scholar"}</span>
+                                  </div>
+                                  <div className="flex justify-between text-sm p-3 bg-white/5 rounded-lg border border-white/5">
+                                      <span className="text-gray-400">Phone</span>
+                                      <span className="text-white font-semibold">{user.phoneNo || "N/A"}</span>
+                                  </div>
+                                  <div className="flex justify-between text-sm p-3 bg-white/5 rounded-lg border border-white/5">
+                                      <span className="text-gray-400">Address</span>
+                                      <span className="text-white font-semibold">{user.address || "N/A"}</span>
+                                  </div>
+                              </div>
+                          </div>
+                      </GlassCard>
+
+                      {/* 2. Stats & Active Loans */}
+                      <div className="md:col-span-2 space-y-6">
+                          {/* Wallet Stats */}
+                          <div className="grid grid-cols-2 gap-4">
+                              <GlassCard className="p-6 flex items-center justify-between">
+                                  <div><p className="text-xs uppercase tracking-wider text-gray-400">Books Held</p><h3 className="text-3xl font-bold text-white mt-1">{getActiveLoans().length}</h3></div>
+                                  <div className="p-3 bg-blue-500/20 rounded-xl"><Book className="w-6 h-6 text-blue-400"/></div>
+                              </GlassCard>
+                              <GlassCard className="p-6 flex items-center justify-between">
+                                  <div><p className="text-xs uppercase tracking-wider text-gray-400">Unpaid Fines</p><h3 className="text-3xl font-bold text-red-400 mt-1">₹{getTotalFines()}</h3></div>
+                                  <div className="p-3 bg-red-500/20 rounded-xl"><Wallet className="w-6 h-6 text-red-400"/></div>
+                              </GlassCard>
+                          </div>
+
+                          {/* Active Loans Table */}
+                          <GlassCard>
+                              <div className="p-6 pb-2"><h3 className="font-bold text-lg text-white flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-green-400"/> Active Loans</h3></div>
+                              <div className="overflow-x-auto custom-scroll">
+                                  <table className="w-full text-left">
+                                      <thead className="bg-black/20 text-gray-400 text-xs uppercase font-bold"><tr><th className="px-6 py-3">Book</th><th className="px-6 py-3">Issued On</th><th className="px-6 py-3 text-right">Due</th></tr></thead>
+                                      <tbody className="text-sm text-gray-300 divide-y divide-white/5">
+                                          {getActiveLoans().length === 0 ? <tr><td colSpan="3" className="p-6 text-center text-gray-500">No active loans. You are free!</td></tr> : getActiveLoans().map(t => (
+                                              <tr key={t.id} className="hover:bg-white/5">
+                                                  <td className="px-6 py-3 font-medium text-white">{t.book?.bookTitle}</td>
+                                                  <td className="px-6 py-3 text-gray-400">{new Date(t.createdOn).toLocaleDateString()}</td>
+                                                  <td className="px-6 py-3 text-right text-blue-300 font-mono">14 Days</td>
+                                              </tr>
+                                          ))}
+                                      </tbody>
+                                  </table>
+                              </div>
+                          </GlassCard>
+                      </div>
+                  </div>
+              </div>
+          )}
+
+          {/* ANALYTICS TAB (Admin Only) */}
           {activeTab === 'analytics' && analytics && (
             <div className="space-y-8 animate-fade-in">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

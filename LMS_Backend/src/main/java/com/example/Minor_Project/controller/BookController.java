@@ -43,10 +43,18 @@ public class BookController {
 
     @GetMapping("/all") //criteria query is created when we want to filter search for various types //whenever we are creating our own queries,we have to directly interact with EntityManager,we cannot directly use the JpaRepository,so we need to autowire this in some class,so we created CustomBookRepository and its implementing class CustomBookRepositoryImpl which is extended by BookRepository
     @LogAnnotation  //custom annotation
-    public ResponseEntity<List<Book>> getBooks(@RequestParam(value = "title" , required = false) String bookTitle , @RequestParam(value = "type" , required = false) String bookType){
+    public ResponseEntity<List<Book>> getBooks(
+            @RequestParam(value = "title", required = false) String bookTitle,
+            @RequestParam(value = "type", required = false) String bookType,
+            @RequestParam(value = "author", required = false) String author,
+            @RequestParam(value = "status", required = false) String status
+    ) {
 
-        log.info("In bookController and in getBooks method");
-        List<Book> books = bookService.getBooks(bookTitle,bookType);
+        log.info("In bookController and in getBooks method. Searching for: Title={}, Type={}, Author={}, Status={}", bookTitle, bookType, author, status);
+
+        // Call the updated Service method with all 4 arguments
+        List<Book> books = bookService.getBooks(bookTitle, bookType, author, status);
+
         return new ResponseEntity<>(books, HttpStatus.OK);
 
     }

@@ -15,13 +15,24 @@ public interface BookRepository extends JpaRepository<Book,Integer>  {
 
     Book findBookByBookNo(String bookNo);
 
-    // This single query replaces the entire CustomBookRepositoryImpl file
-    // It says: "If title is provided, match it. AND If type is provided, match it."
+    // --- UPDATED QUERY FOR ADVANCED SEARCH ---
+    // 1. Title (Partial)
+    // 2. Type (Exact)
+    // 3. Author (Partial match on joined table)
+    // 4. Availability (Boolean: true = issued, false = available)
     @Query("SELECT b FROM Book b WHERE " +
             "(:title IS NULL OR LOWER(b.bookTitle) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
-            "(:type IS NULL OR b.bookType = :type)")
-    List<Book> findBookByFilters(@Param("title") String title, @Param("type") BookType type);
-
+            "(:type IS NULL OR b.bookType = :type) AND " +
+            "(:author IS NULL OR LOWER(b.author.name) LIKE LOWER(CONCAT('%', :author, '%'))) AND " +
+            "(:issued IS NULL OR " +
+            "  (:issued = true AND b.user IS NOT NULL) OR " +
+            "  (:issued = false AND b.user IS NULL))")
+    List<Book> findBookByFilters(
+            @Param("title") String title,
+            @Param("type") BookType type,
+            @Param("author") String author,
+            @Param("issued") Boolean issued
+    );
 
     // Add this line inside the interface
     long countByBookType(BookType bookType);
