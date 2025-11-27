@@ -17,4 +17,7 @@ public class TransactionRequest {
 
     @NotBlank(message = "User Email is mandatory")
     String userEmail;
+
+    String paymentId;
+
 }

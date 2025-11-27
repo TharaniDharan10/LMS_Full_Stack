@@ -33,6 +33,9 @@ public class TransactionService {
     @Autowired
     TransactionRepository transactionRepository;
 
+    @Autowired
+    NotificationService notificationService;
+
     @Value("${book.maximum.validity}")    //this is used to retrieve values from application.properties
     int validDays;   //so now 14 is fetched here
 
@@ -68,22 +71,35 @@ public class TransactionService {
             throw new TransactionException("Book is already issued to: " + book.getUser().getName());
         }
 
-        return issueBook(user,book);
+        return issueBook(user,book, request.getPaymentId());
     }
 
     @Transactional
-    protected Transaction issueBook(User user,Book book){
+    protected Transaction issueBook(User user,Book book, String paymentId){
         Transaction transaction = Transaction.builder()
                 .book(book)
                 .user(user)
                 .transactionId(UUID.randomUUID().toString().substring(0,30)) //we did substring here from 0 to 30 as our TransactionId is set to length 30
                 .settlementAmount(-book.getSecurityAmount())
                 .transactionStatus(TransactionStatus.ISSUED)
+                .paymentId(paymentId)
                 .build();
 
         transaction = transactionRepository.save(transaction);
         book.setUser(user);
         bookService.updateBookMetaData(book);
+
+        try {
+            notificationService.sendIssueNotification(
+                    user.getEmail(),
+                    user.getName(),
+                    book.getBookTitle(),
+                    book.getBookNo()
+            );
+        } catch (Exception e) {
+            // Don't stop the transaction just because email failed
+            System.out.println("Failed to send email: " + e.getMessage());
+        }
         return transaction;
     }
 
@@ -149,6 +165,28 @@ public class TransactionService {
         transactionRepository.save(transaction);
         book.setUser(null);
         bookService.updateBookMetaData(book);
+
+        // Your logic stores the fine as a negative number (e.g., -50) in settlementAmount.
+        // We use Math.abs() to convert -50 to 50 for the email.
+        int fineForEmail = 0;
+        if (transaction.getSettlementAmount() < 0) {
+            fineForEmail = Math.abs(transaction.getSettlementAmount());
+        }
+
+
+        // --- 3. SEND RETURN EMAIL HERE ---
+        try {
+            // transaction.getUser() gives us the student details
+            notificationService.sendReturnNotification(
+                    transaction.getUser().getEmail(),
+                    transaction.getUser().getName(),
+                    book.getBookTitle(),
+                    fineForEmail // <--- Pass the calculated positive fine here
+            );
+        } catch (Exception e) {
+            System.out.println("Failed to send return email: " + e.getMessage());
+        }
+
         return amount;
     }
 

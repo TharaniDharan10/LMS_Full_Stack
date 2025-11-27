@@ -35,6 +35,9 @@ public class Transaction implements Serializable {   //we implement Serialisable
     @ManyToOne
     Book book;
 
+    String paymentId;
+
+
     @ManyToOne //many books can be affored by one user
     User user;
 

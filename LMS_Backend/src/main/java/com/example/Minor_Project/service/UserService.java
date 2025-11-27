@@ -84,12 +84,27 @@ public class UserService implements UserDetailsService {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    NotificationService notificationService;
+
     public User addStudent(AddUserRequest addUserRequest) {
         User user = UserMapper.mapToUser(addUserRequest);
         user.setUserType(UserType.STUDENT);
         user.setAuthorities("STUDENT");
 
-        return userRepository.save(user);
+        User saveduser =  userRepository.save(user);
+
+        // This runs immediately after the user is saved to DB
+        if(saveduser.getEmail() != null) {
+            try {
+                notificationService.sendWelcomeEmail(saveduser.getEmail(), saveduser.getName());
+            } catch (Exception e) {
+                System.out.println("Failed to send welcome email: " + e.getMessage());
+            }
+        }
+
+        return saveduser;
+
     }
 
     public User fetchUserByEmail(String email){
@@ -129,6 +144,16 @@ public class UserService implements UserDetailsService {
         user.setUserType(UserType.ADMIN);
         user.setAuthorities("ADMIN");
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        // --- 3. SEND WELCOME EMAIL FOR ADMIN TOO ---
+        if(savedUser.getEmail() != null) {
+            try {
+                notificationService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getName());
+            } catch (Exception e) {
+                System.out.println("Failed to send welcome email: " + e.getMessage());
+            }
+        }
+        return savedUser;
     }
 }
