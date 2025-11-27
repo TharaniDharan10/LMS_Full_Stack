@@ -1,6 +1,14 @@
 const API_BASE_URL = 'http://localhost:8081';
 
 export const api = {
+  // Add this to your api object
+  getAnalytics: (auth) => {
+      const base64Credentials = btoa(`${auth.username}:${auth.password}`);
+      return fetch(`${API_BASE_URL}/analytics`, {
+        headers: { 'Authorization': `Basic ${base64Credentials}` }
+      });
+  },
+
   testConnection: async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/health`);
