@@ -1,112 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, LogOut, Search, Plus, Book, ArrowLeftRight, UserPlus, Clock, Trash2, Sparkles, User, Feather, X } from 'lucide-react'; 
+import { BookOpen, LogOut, Search, Plus, Book, ArrowLeftRight, UserPlus, Clock, Trash2, Sparkles, User, Feather, X, CreditCard, Loader } from 'lucide-react'; 
 import { api } from '../services/api';
 
-// --- 1. CSS STYLES (Animations, Glass, Manuscript) ---
+// --- 1. CSS STYLES ---
 const dashboardStyles = `
-  /* BACKGROUND ANIMATION: Slow Pan */
-  @keyframes moveThrough {
-    0% { 
-      transform: scale(1); 
-      background-position: center top;
-    }
-    100% { 
-      transform: scale(1.5); 
-      background-position: center bottom;
-    }
-  }
-
+  @keyframes moveThrough { 0% { transform: scale(1.1); } 100% { transform: scale(1.3); } }
   .library-aisle-bg {
     background-image: url('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=2070&auto=format&fit=crop');
-    background-size: cover;
-    background-position: center;
-     /* Faster animation (25s) to make movement obvious */
-    animation: moveThrough 25s ease-in-out infinite alternate;
-    /* Hardware acceleration for smoothness */
-    will-change: transform;
+    background-size: cover; background-position: center; animation: moveThrough 60s linear infinite alternate;
   }
-
-  /* FIREFLIES */
-  .firefly {
-    position: absolute;
-    width: 3px;
-    height: 3px;
-    background: #fbbf24;
-    border-radius: 50%;
-    box-shadow: 0 0 8px 2px rgba(252, 211, 77, 0.6);
-    opacity: 0;
-    animation: float 8s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
-    20%, 80% { opacity: 1; }
-    50% { transform: translateY(-40px) translateX(20px); }
-  }
-
-  /* SCROLLBAR */
+  .firefly { position: absolute; width: 3px; height: 3px; background: #fbbf24; border-radius: 50%; box-shadow: 0 0 8px 2px rgba(252, 211, 77, 0.6); opacity: 0; animation: float 8s ease-in-out infinite; }
+  @keyframes float { 0%, 100% { transform: translateY(0) translateX(0); opacity: 0; } 20%, 80% { opacity: 1; } 50% { transform: translateY(-40px) translateX(20px); } }
   .custom-scroll::-webkit-scrollbar { width: 6px; }
   .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-  .custom-scroll::-webkit-scrollbar-thumb { background: rgba(30, 15, 5, 0.5); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
-
-  /* === REALISTIC PIRATE BURNT MANUSCRIPT EFFECT === */
+  .custom-scroll::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.3); border-radius: 10px; }
   .manuscript-paper {
-    /* Deep aged parchment color base */
-    background-color: #c2a073;
-    
-    /* Layered Background Images: Texture, Skull, Vignette, Stains */
-    background-image: 
-        /* 1. Subtle paper texture pattern */
-        url("https://www.transparenttextures.com/patterns/aged-paper.png"),
-        /* 2. THE PIRATE SKULL WATERMARK (SVG Data URI) - Transparent dark brown */
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='rgba(42, 21, 10, 0.12)'%3E%3Cpath d='M12 2c-4.97 0-9 4.03-9 9 0 1.59.45 3.08 1.23 4.37L2.5 17.13c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.74-1.74C7.34 18.65 9.56 20 12 20s4.66-1.35 6.35-3.2l1.74 1.74c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-1.73-1.76C20.55 14.08 21 12.59 21 11c0-4.97-4.03-9-9-9zm-3 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z'/%3E%3Ccircle cx='9' cy='12' r='2.2' fill='rgba(42, 21, 10, 0.15)'/%3E%3Cpath d='M7 10l-4-3' stroke='rgba(42, 21, 10, 0.15)' stroke-width='1.5'/%3E%3C/svg%3E"),
-        /* 3. Dark vignette to darken corners */
-        radial-gradient(ellipse at center, transparent 30%, rgba(40, 20, 10, 0.8) 100%),
-        /* 4. Random large stain */
-        radial-gradient(circle at 30% 20%, rgba(80, 40, 20, 0.2) 0%, transparent 40%),
-        /* 5. Another random stain */
-        radial-gradient(circle at 80% 70%, rgba(80, 40, 20, 0.3) 0%, transparent 50%);
-    
-    /* Blend modes to mix the layers automatically */
-    background-blend-mode: overlay, normal, multiply, normal, normal;
-    
-    /* Positioning and Sizing for the layers */
-    background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-    background-position: center center;
-    /* Size the skull to be large in the center */
-    background-size: auto, 60% auto, auto, auto, auto; 
-
-    
-    /* IRREGULAR SHAPE: Wonky corners */
-    border-radius: 25px 225px 35px 245px / 245px 35px 225px 25px;
-    
-    /* BURNT EDGES: Heavy inset shadows */
-    box-shadow: 
-        inset 0 0 50px 30px rgba(20, 10, 5, 0.95),
-        inset 0 0 90px 60px rgba(80, 40, 20, 0.6),
-        0 30px 60px rgba(0,0,0,0.9);
-        
-    /* Rough border */
-    border: 3px solid #2a150a;
-    
-    /* Ink appearance */
-    color: #2a150a;
-    text-shadow: 0 0 1px rgba(42, 21, 10, 0.3);
-    font-family: 'Georgia', 'Times New Roman', serif;
-    
-    transform: rotate(-1deg);
-    overflow: hidden;
+    background-color: #fdf6e3; background-image: radial-gradient(#dcc096 1px, transparent 1px); background-size: 20px 20px;
+    box-shadow: inset 0 0 40px 10px rgba(101, 67, 33, 0.5), 0 20px 50px rgba(0,0,0,0.8); border: 1px solid #8b4513; color: #3d2b1f; font-family: 'Georgia', serif;
   }
 `;
 
 // --- 2. HELPER COMPONENTS ---
-
-// Glass Card with Gradient Border & Click Handler
 const GlassCard = ({ children, className = "", onClick }) => (
-  <div 
-    onClick={onClick} 
-    className={`relative group rounded-2xl p-[1px] bg-gradient-to-br from-cyan-400/30 via-blue-500/30 to-purple-600/30 shadow-xl overflow-hidden ${onClick ? 'cursor-pointer' : ''} ${className}`}
-  >
+  <div onClick={onClick} className={`relative group rounded-2xl p-[1px] bg-gradient-to-br from-cyan-400/30 via-blue-500/30 to-purple-600/30 shadow-xl overflow-hidden ${onClick ? 'cursor-pointer' : ''} ${className}`}>
     <div className="relative h-full w-full bg-gray-900/70 backdrop-blur-xl rounded-2xl overflow-hidden transition-colors hover:bg-gray-900/60">
       <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
       {children}
@@ -114,30 +30,14 @@ const GlassCard = ({ children, className = "", onClick }) => (
   </div>
 );
 
-// Fireflies Background
-const Fireflies = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-    {Array.from({ length: 15 }).map((_, i) => (
-      <div key={i} className="firefly" style={{
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        animationDelay: `${Math.random() * 10}s`,
-        animationDuration: `${10 + Math.random() * 10}s`
-      }} />
-    ))}
-  </div>
-);
+const Fireflies = () => ( <div className="absolute inset-0 overflow-hidden pointer-events-none z-0"> {Array.from({ length: 15 }).map((_, i) => ( <div key={i} className="firefly" style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 10}s`, animationDuration: `${10 + Math.random() * 10}s` }} /> ))} </div> );
 
-// --- 3. MODALS ---
-
-// Standard Modal Container
 const ModalWrapper = ({ children, title, Icon, color }) => (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
         <GlassCard className="w-full max-w-md transform transition-all">
             <div className="p-8">
                 <h3 className={`text-2xl font-bold mb-6 flex items-center gap-3 bg-clip-text text-transparent bg-gradient-to-r ${color === 'green' ? 'from-green-400 to-emerald-300' : 'from-purple-400 to-pink-300'}`}>
-                    <Icon className={`w-6 h-6 ${color === 'green' ? 'text-green-400' : 'text-purple-400'}`} />
-                    {title}
+                    <Icon className={`w-6 h-6 ${color === 'green' ? 'text-green-400' : 'text-purple-400'}`} />{title}
                 </h3>
                 {children}
             </div>
@@ -145,36 +45,80 @@ const ModalWrapper = ({ children, title, Icon, color }) => (
     </div>
 );
 
-// --- UPDATED PIRATE MANUSCRIPT MODAL ---
+// --- 3. MOCK PAYMENT MODAL (NEW) ---
+const PaymentModal = ({ amount, onConfirm, onCancel }) => {
+    const [processing, setProcessing] = useState(false);
+
+    const handlePay = () => {
+        setProcessing(true);
+        // Simulate network delay
+        setTimeout(() => {
+            const mockPaymentId = "pay_mock_" + Math.random().toString(36).substr(2, 9);
+            onConfirm(mockPaymentId);
+        }, 2000);
+    };
+
+    return (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <div className="bg-white rounded-2xl w-full max-w-sm p-6 relative overflow-hidden shadow-2xl">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2"><CreditCard className="w-5 h-5 text-blue-600"/> Secure Payment</h3>
+                    <button onClick={onCancel} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5"/></button>
+                </div>
+
+                {/* Amount Display */}
+                <div className="bg-blue-50 p-4 rounded-xl mb-6 text-center border border-blue-100">
+                    <p className="text-sm text-gray-500 uppercase tracking-wide">Total Security Deposit</p>
+                    <p className="text-3xl font-bold text-blue-600">₹{amount}</p>
+                </div>
+
+                {/* Fake Card Form */}
+                <div className="space-y-3 mb-6">
+                    <input type="text" placeholder="Card Number (Any random number)" className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                    <div className="flex gap-3">
+                        <input type="text" placeholder="MM/YY" className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 outline-none" />
+                        <input type="text" placeholder="CVV" className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 outline-none" />
+                    </div>
+                </div>
+
+                {/* Pay Button */}
+                <button 
+                    onClick={handlePay} 
+                    disabled={processing}
+                    className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition flex items-center justify-center gap-2"
+                >
+                    {processing ? <><Loader className="w-5 h-5 animate-spin"/> Processing...</> : `Pay ₹${amount}`}
+                </button>
+                
+                <p className="text-center text-xs text-gray-400 mt-4 flex items-center justify-center gap-1">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span> 128-bit SSL Encrypted (Mock)
+                </p>
+            </div>
+        </div>
+    );
+};
+
+// --- 4. OTHER MODALS (Manuscript, Add Book, etc) ---
+
 const BookDetailModal = ({ book, onClose }) => {
     if (!book) return null;
     return (
       <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in" onClick={onClose}>
-        <div className="w-full max-w-lg relative" onClick={e => e.stopPropagation()}>
-          {/* UPDATED HEIGHT: Changed min-h to 650px for a longer pirate map look */}
-          <div className="manuscript-paper p-12 relative min-h-[650px] flex flex-col">
-              {/* Header */}
-              <div className="text-center border-b-2 border-[#2a150a]/40 pb-4 mb-6">
-                  <h2 className="text-4xl font-bold uppercase tracking-widest leading-tight">{book.bookTitle}</h2>
-                  <div className="flex justify-center items-center gap-2 mt-3 italic text-lg">
-                    <Feather className="w-5 h-5" />
-                    <span>{book.author?.name || book.authorName || 'Unknown Author'}</span>
+        <div className="w-full max-w-lg relative transform transition-all hover:scale-[1.01]" onClick={e => e.stopPropagation()}>
+          <div className="manuscript-paper rounded-lg p-10 relative min-h-[400px] flex flex-col">
+              <div className="text-center border-b-2 border-[#8b4513]/20 pb-4 mb-4">
+                  <h2 className="text-3xl font-bold uppercase tracking-widest text-[#5c3a21]">{book.bookTitle}</h2>
+                  <div className="flex justify-center items-center gap-2 mt-2 text-[#8b4513] italic">
+                    <Feather className="w-4 h-4" /><span>{book.author?.name || book.authorName || 'Unknown Author'}</span>
                   </div>
               </div>
-              {/* Summary Display */}
-              <div className="flex-grow overflow-y-auto custom-scroll pr-4 relative z-10">
-                <h4 className="text-sm font-bold uppercase tracking-widest opacity-70 mb-3">Synopsis</h4>
-                <p className="text-xl leading-relaxed text-justify font-serif">
-                    {book.summary || "The pages of this ancient tome are too charred to read a summary..."}
-                </p>
+              <div className="flex-grow overflow-y-auto custom-scroll pr-2">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-[#8b4513]/60 mb-2">Synopsis</h4>
+                <p className="text-lg leading-relaxed text-justify font-serif text-[#3d2b1f]">{book.summary || "No summary has been recorded for this book in the archives."}</p>
               </div>
-              {/* Footer */}
-              <div className="mt-8 pt-4 border-t border-[#2a150a]/40 flex justify-between text-base font-bold relative z-10">
-                  <span className="bg-[#2a150a]/10 px-3 py-1 rounded-sm">Ref: {book.bookNo}</span>
-                  <span className="bg-[#2a150a]/10 px-3 py-1 rounded-sm">Cost: ₹{book.securityAmount}</span>
-              </div>
-              {/* Close Button */}
-              <button onClick={onClose} className="absolute top-6 right-6 text-[#2a150a] hover:text-red-900 transition-colors hover:scale-110 z-20"><X className="w-8 h-8" strokeWidth={3}/></button>
+              <div className="mt-6 pt-4 border-t border-[#8b4513]/20 flex justify-between text-sm font-bold text-[#8b4513]"><span>Ref: {book.bookNo}</span><span>Cost: ₹{book.securityAmount}</span></div>
+              <button onClick={onClose} className="absolute top-3 right-3 text-[#8b4513] hover:text-red-800"><X className="w-6 h-6"/></button>
           </div>
         </div>
       </div>
@@ -222,26 +166,75 @@ const AddBookModal = ({ user, onClose, onSuccess }) => {
   );
 };
 
-const TransactionModal = ({ type, user, isAdmin, initialBookNo, onClose, onSuccess }) => {
+// --- UPDATED TRANSACTION MODAL (Uses Fake Payment) ---
+const TransactionModal = ({ type, user, isAdmin, initialBookNo, onClose, onSuccess, books }) => {
   const [formData, setFormData] = useState({ userEmail: isAdmin ? '' : (user.email || user.username), bookNo: initialBookNo || '' });
-  const [message, setMessage] = useState('');
-  const handleSubmit = async () => {
-    if(!formData.userEmail || !formData.bookNo) { setMessage('Fill all fields'); return; }
-    try { const res = await (type === 'issue' ? api.issueBook : api.returnBook)(user, formData); if (res.ok) { const data = await res.json(); setMessage(`Success! ${type === 'return' ? `Fine: ${data.settlementAmount}` : ''}`); setTimeout(() => { onSuccess(); onClose(); }, 1500); } else { const err = await res.text(); try { setMessage(JSON.parse(err).message || err); } catch(e) { setMessage(err || 'Failed'); } } } catch (e) { setMessage('Error'); }
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [showPayment, setShowPayment] = useState(false);
+  const [amountToPay, setAmountToPay] = useState(0);
+
+  // Step 1: Validate and Open Payment
+  const initiateTransaction = () => {
+    if(!formData.userEmail || !formData.bookNo) { setMessage({ type: 'error', text: 'Please fill all fields' }); return; }
+    
+    if (type === 'issue') {
+        const targetBook = books?.find(b => b.bookNo === formData.bookNo);
+        if (!targetBook) { setMessage({ type: 'error', text: 'Invalid Book Number.' }); return; }
+        setAmountToPay(targetBook.securityAmount);
+        setShowPayment(true); // Open Mock Payment
+    } else {
+        // For return, proceed directly
+        processTransaction(null);
+    }
   };
+
+  // Step 2: Process API with PaymentID
+  const processTransaction = async (paymentId) => {
+    setShowPayment(false); // Close payment modal if open
+    setMessage({ type: 'info', text: 'Processing...' });
+    
+    try {
+      const endpoint = type === 'issue' ? api.issueBook : api.returnBook;
+      const response = await endpoint(user, { ...formData, paymentId });
+      
+      if (response.ok) { 
+          const data = await response.json(); 
+          setMessage({ type: 'success', text: `Success! ${type === 'return' ? `Fine: ${data}` : `ID: ${paymentId}`}` }); 
+          setTimeout(() => { onSuccess(); onClose(); }, 2000); 
+      } else { 
+          const err = await response.text(); 
+          try { setMessage({ type: 'error', text: JSON.parse(err).message || err }); } 
+          catch(e) { setMessage({ type: 'error', text: err || 'Failed' }); } 
+      }
+    } catch (err) { setMessage({ type: 'error', text: 'Connection error' }); }
+  };
+
   return (
-    <ModalWrapper title={`${type} Book`} Icon={type==='issue'?Sparkles:ArrowLeftRight} color="green">
-        {message && <div className="mb-4 p-3 bg-blue-500/20 rounded-lg text-blue-200 text-sm">{message}</div>}
-        <div className="space-y-4">
-          <input type="email" placeholder="Student Email" value={formData.userEmail} onChange={e => setFormData({...formData, userEmail: e.target.value})} readOnly={!isAdmin} className={`w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white outline-none ${!isAdmin ? 'opacity-50' : ''}`} />
-          <input type="text" placeholder="Book No" value={formData.bookNo} onChange={e => setFormData({...formData, bookNo: e.target.value})} className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white outline-none" />
-          <div className="flex gap-2 mt-4"><button onClick={handleSubmit} className="flex-1 py-2 bg-blue-600 rounded-lg font-bold capitalize">{type}</button><button onClick={onClose} className="flex-1 py-2 bg-white/10 rounded-lg font-bold">Cancel</button></div>
-        </div>
-    </ModalWrapper>
+    <>
+        {/* Mock Payment Overlay */}
+        {showPayment && <PaymentModal amount={amountToPay} onConfirm={processTransaction} onCancel={() => setShowPayment(false)} />}
+
+        {/* Normal Transaction Form */}
+        {!showPayment && (
+            <ModalWrapper title={`${type} Book`} Icon={type==='issue'?Sparkles:ArrowLeftRight} color="green">
+                {message.text && <div className={`mb-4 p-3 rounded-lg text-sm ${message.type === 'success' ? 'bg-green-500/20 text-green-200' : 'bg-red-500/20 text-red-200'}`}>{message.text}</div>}
+                <div className="space-y-4">
+                <input type="email" placeholder="Student Email" value={formData.userEmail} onChange={e => setFormData({...formData, userEmail: e.target.value})} readOnly={!isAdmin} className={`w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white outline-none ${!isAdmin ? 'opacity-50' : ''}`} />
+                <input type="text" placeholder="Book No" value={formData.bookNo} onChange={e => setFormData({...formData, bookNo: e.target.value})} className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white outline-none" />
+                <div className="flex gap-2 mt-4">
+                    <button onClick={initiateTransaction} className="flex-1 py-2 bg-blue-600 rounded-lg font-bold capitalize">
+                        {type === 'issue' ? 'Pay & Issue' : 'Return'}
+                    </button>
+                    <button onClick={onClose} className="flex-1 py-2 bg-white/10 rounded-lg font-bold">Cancel</button>
+                </div>
+                </div>
+            </ModalWrapper>
+        )}
+    </>
   );
 };
 
-// --- 4. MAIN DASHBOARD ---
+// --- 5. MAIN DASHBOARD ---
 export const Dashboard = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('books');
   const [books, setBooks] = useState([]);
@@ -393,7 +386,10 @@ export const Dashboard = ({ user, onLogout }) => {
 
       {modals.admin && <AdminRegisterModal user={user} onClose={() => setModals({...modals, admin: false})} />}
       {modals.add && <AddBookModal user={user} onClose={() => setModals({...modals, add: false})} onSuccess={fetchBooks} />}
-      {modals.trans && <TransactionModal type={transactionType} user={user} isAdmin={isAdmin} initialBookNo={selectedBookNo} onClose={() => { setModals({...modals, trans: false}); setSelectedBookNo(''); }} onSuccess={() => { fetchBooks(); fetchTransactions(); }} />}
+      
+      {/* 5. PASS BOOKS TO TRANSACTION MODAL FOR PRICE LOOKUP */}
+      {modals.trans && <TransactionModal type={transactionType} user={user} isAdmin={isAdmin} initialBookNo={selectedBookNo} onClose={() => { setModals({...modals, trans: false}); setSelectedBookNo(''); }} onSuccess={() => { fetchBooks(); fetchTransactions(); }} books={books} />}
+      
       {viewingBook && <BookDetailModal book={viewingBook} onClose={() => setViewingBook(null)} />}
     </div>
   );
