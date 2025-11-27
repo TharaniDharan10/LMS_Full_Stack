@@ -22,4 +22,7 @@ public interface BookRepository extends JpaRepository<Book,Integer>  {
             "(:type IS NULL OR b.bookType = :type)")
     List<Book> findBookByFilters(@Param("title") String title, @Param("type") BookType type);
 
+
+    // Add this line inside the interface
+    long countByBookType(BookType bookType);
 }
