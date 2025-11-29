@@ -13,6 +13,8 @@ public class BookMapper {
                 .bookNo(addBookRequest.getBookNo())
                 .bookTitle(addBookRequest.getBookTitle())
                 .summary(addBookRequest.getSummary())
+                .imageUrl(addBookRequest.getImageUrl())
+                .pdfUrl(addBookRequest.getPdfUrl())
                 .bookType(addBookRequest.getBookType())
                 .securityAmount(addBookRequest.getSecurityAmount())
                 .build();

@@ -67,12 +67,25 @@ public class User implements Serializable, UserDetails { //we implement Serialis
 
     String authorities;
 
+    @Column(name = "is_verified")
+    Boolean isVerified = false; // Default false
+
+    String verificationToken; // Stores the UUID sent in email
 
     @CreationTimestamp(source = SourceType.DB)//provided by JPA .By default its SourceType is SourceType.VM where VM is virtual machine.Setting it to DB will createTimeStamp based on where mysql server is running in which country server;
     Date createdOn;
 
     @UpdateTimestamp//provided by JPA . Similarly here also like CreationTimeStamp
     Date updatedOn;
+
+    public void setVerified(boolean verified) {
+        this.isVerified = verified;
+    }
+
+    public boolean isVerified() {
+        // Safe check: if null, return false
+        return this.isVerified != null && this.isVerified;
+    }
 
     @Override   //actually, when a class is implementing userDetails, by default it has 3 methods to override.They are getUsername(), getPassword(), getAuthorities().But since its annotated with @Data, getters for password and authorities are set already.But we know, we cannot use getter of authorites as we store it as a string, but we know some users have multiple authorities.So we override.
     public String getUsername() {

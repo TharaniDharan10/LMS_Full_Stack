@@ -37,6 +37,11 @@ public class Book implements Serializable {  //we implement Serialisable with al
     @Column(columnDefinition = "TEXT") // Allows long strings (summaries)
     String summary;
 
+    @Column(columnDefinition = "TEXT")
+    String imageUrl;
+
+    @Column(columnDefinition = "TEXT")
+    String pdfUrl;
 
     int securityAmount; //all books do not have equal importance,so the collected amount is different.In case if collected amount is same,then we can add this field in application.properties
 

@@ -66,12 +66,20 @@ public class TransactionService {
 
         Book book = fetchBook(request);
 
+        // 2. NEW FEATURE: Check 2 Book Limit
+        // If user is STUDENT, check their active loans
+        if (user.getUserType() == UserType.STUDENT) {
+            long activeLoans = transactionRepository.countByUserAndTransactionStatus(user, TransactionStatus.ISSUED);
+            if (activeLoans >= 2) {
+                throw new TransactionException("Limit Reached: You cannot hold more than 2 books at a time.");
+            }
+        }
         // --- LOGIC FIX: Proper error message if book is taken ---
         if(book.getUser() != null){
             throw new TransactionException("Book is already issued to: " + book.getUser().getName());
         }
 
-        return issueBook(user,book, request.getPaymentId());
+        return issueBook(user, book, request.getPaymentId());
     }
 
     @Transactional

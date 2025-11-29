@@ -34,6 +34,10 @@ public class AddBookRequest {
     @NotNull(message = "Book title shouldnot be blank")   //since BookType is an enum
     BookType bookType;
 
+    private String imageUrl;
+
+    private String pdfUrl;
+
     @NotBlank(message = "Author name shouldnot be blank")
     String authorName;
 

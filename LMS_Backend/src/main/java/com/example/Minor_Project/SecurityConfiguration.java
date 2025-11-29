@@ -154,6 +154,8 @@ public class SecurityConfiguration {
                         // Student specific
                         .requestMatchers("/transaction/issue").hasAnyAuthority("STUDENT", "ADMIN")
                         .requestMatchers("/book/all").authenticated()
+                        .requestMatchers("/auth/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 // ... rest of configuration (httpBasic, session, csrf) remains the same

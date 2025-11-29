@@ -62,8 +62,6 @@
 //    }
 //}
 
-
-
 package com.example.Minor_Project.service;
 
 import com.example.Minor_Project.dto.AddUserRequest;
@@ -79,6 +77,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID; // --- ADDED MISSING IMPORT ---
+
 @Service
 public class UserService implements UserDetailsService {
 
@@ -88,66 +88,78 @@ public class UserService implements UserDetailsService {
     @Autowired
     NotificationService notificationService;
 
+    // --- 1. STUDENT REGISTRATION (With Verification) ---
     public User addStudent(AddUserRequest addUserRequest) {
         User user = UserMapper.mapToUser(addUserRequest);
         user.setUserType(UserType.STUDENT);
         user.setAuthorities("STUDENT");
 
-        User saveduser =  userRepository.save(user);
+        // --- VERIFICATION LOGIC ---
+        user.setVerified(false); // Block login until verified
+        String token = UUID.randomUUID().toString();
+        user.setVerificationToken(token);
 
-        // This runs immediately after the user is saved to DB
-        if(saveduser.getEmail() != null) {
-            try {
-                notificationService.sendWelcomeEmail(saveduser.getEmail(), saveduser.getName());
-            } catch (Exception e) {
-                System.out.println("Failed to send welcome email: " + e.getMessage());
-            }
+        User savedUser = userRepository.save(user);
+
+        // Send Verification Link via Email
+        // Ensure your AuthController has a mapping for /auth/verify
+        String link = "http://localhost:8081/auth/verify?token=" + token;
+        try {
+            notificationService.sendEmail(user.getEmail(), "Verify Account - LMS",
+                    "Welcome to LMS! Please click the link to verify your account: " + link);
+        } catch (Exception e) {
+            System.out.println("Failed to send verification email: " + e.getMessage());
         }
 
-        return saveduser;
+        return savedUser;
+    }
 
+    // --- 2. VERIFY USER (Called when link is clicked) ---
+    public boolean verifyUser(String token) {
+        User user = userRepository.findByVerificationToken(token);
+        if (user == null) return false;
+
+        user.setVerified(true);
+        user.setVerificationToken(null); // Invalidate token after use
+        userRepository.save(user);
+        return true;
     }
 
     public User fetchUserByEmail(String email){
         return userRepository.findByEmail(email);
     }
 
+    // --- 3. LOGIN LOGIC (Now checks verification status) ---
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        System.out.println("========================================");
-        System.out.println("=== LOADING USER FOR AUTHENTICATION ===");
-        System.out.println("========================================");
-        System.out.println("Searching for user with identifier: " + username);
+        System.out.println("=== AUTHENTICATING USER: " + username + " ===");
 
         User user = userRepository.findByEmail(username);
 
-        if (user != null) {
-            System.out.println("✓ USER FOUND!");
-            System.out.println("  - Email: " + user.getEmail());
-            System.out.println("  - Name: " + user.getName());
-            System.out.println("  - Password in DB: " + user.getPassword());
-            System.out.println("  - User Type: " + user.getUserType());
-            System.out.println("  - Authorities: " + user.getAuthorities());
-            System.out.println("  - Account Status: " + user.getUserStatus());
-            System.out.println("========================================");
-            return user;
+        if (user == null) {
+            throw new UsernameNotFoundException("User does not exist");
         }
 
-        System.out.println("✗ USER NOT FOUND!");
-        System.out.println("  - Searched email: " + username);
-        System.out.println("  - Total users in DB: " + userRepository.count());
-        System.out.println("========================================");
-        throw new UsernameNotFoundException(username + " does not exist");
+        // --- CRITICAL: BLOCK UNVERIFIED USERS ---
+        if (!user.isVerified()) {
+            System.out.println("✗ User found but NOT verified.");
+            throw new UsernameNotFoundException("Email not verified. Please check your inbox.");
+        }
+
+        return user;
     }
 
+    // --- 4. ADMIN REGISTRATION ---
     public User addAdmin(@Valid AddUserRequest addUserRequest){
         User user = UserMapper.mapToUser(addUserRequest);
         user.setUserType(UserType.ADMIN);
         user.setAuthorities("ADMIN");
 
+        // Admins created via Dashboard are auto-verified so they can login immediately
+        user.setVerified(true);
+
         User savedUser = userRepository.save(user);
 
-        // --- 3. SEND WELCOME EMAIL FOR ADMIN TOO ---
         if(savedUser.getEmail() != null) {
             try {
                 notificationService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getName());
@@ -158,6 +170,7 @@ public class UserService implements UserDetailsService {
         return savedUser;
     }
 
+    // --- 5. PROFILE UPDATE ---
     public User updateUserProfile(String email, UserUpdateRequest request) {
         User user = userRepository.findByEmail(email);
         if (user != null) {
@@ -167,5 +180,46 @@ public class UserService implements UserDetailsService {
             return userRepository.save(user);
         }
         return null;
+    }
+
+    // --- 6. FORGOT PASSWORD LOGIC ---
+    public String forgotPassword(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            return "User not found";
+        }
+
+        // Generate Reset Token
+        String token = UUID.randomUUID().toString();
+        user.setVerificationToken(token); // Reusing this field for reset logic
+        userRepository.save(user);
+
+        // Send Email
+        // NOTE: You need a frontend route for /reset-password
+        String link = "http://localhost:3000/reset-password?token=" + token;
+        try {
+            notificationService.sendEmail(user.getEmail(), "Reset Password - LMS",
+                    "Click here to reset your password: " + link);
+            return "Reset link sent to your email";
+        } catch (Exception e) {
+            return "Failed to send email";
+        }
+    }
+
+
+    public String resetPassword(String token, String newPassword) {
+        User user = userRepository.findByVerificationToken(token);
+        if (user == null) {
+            return "Invalid or Expired Token";
+        }
+
+        // Update password
+        user.setPassword(newPassword);
+        // Clear token so it cannot be used again
+        user.setVerificationToken(null);
+
+        userRepository.save(user);
+
+        return "Password reset successfully";
     }
 }

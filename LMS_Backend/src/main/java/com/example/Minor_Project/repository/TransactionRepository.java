@@ -26,4 +26,7 @@ public interface TransactionRepository extends JpaRepository<Transaction,Integer
     long countByTransactionStatus(TransactionStatus status);
 
     List<Transaction> findByUser(User user);
+
+    // NEW: Count how many books a user currently has issued
+    long countByUserAndTransactionStatus(User user, TransactionStatus status);
 }
