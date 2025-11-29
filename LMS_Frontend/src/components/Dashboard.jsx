@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, LogOut, Search, Plus, Book, ArrowLeftRight, UserPlus, Clock, Trash2, Sparkles, User, Feather, X, QrCode, Download, TrendingUp, Users, PieChart as PieIcon, Edit2, ShieldCheck, Wallet, Camera, CreditCard, MessageSquare, Send, Sun, Moon, Image as ImageIcon, FileText } from 'lucide-react'; 
+import { BookOpen, LogOut, Search, Plus, Book, ArrowLeftRight, UserPlus, Clock, Trash2, Sparkles, User, Feather, X, QrCode, Download, TrendingUp, Users, PieChart as PieIcon, Edit2, ShieldCheck, Wallet, Camera, CreditCard, MessageSquare, Send, Sun, Moon, Image as ImageIcon, FileText, Mic, Star, Award, Zap } from 'lucide-react'; 
 import { api } from '../services/api';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { QRCodeCanvas } from 'qrcode.react'; 
@@ -22,7 +22,7 @@ const dashboardStyles = `
   .manuscript-paper {
     background-color: #fdf6e3; 
     background-image: 
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='rgba(139, 69, 19, 0.15)'%3E%3Cpath d='M12 2c-4.97 0-9 4.03-9 9 0 1.59.45 3.08 1.23 4.37L2.5 17.13c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.74-1.74C7.34 18.65 9.56 20 12 20s4.66-1.35 6.35-3.2l1.74 1.74c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-1.73-1.76C20.55 14.08 21 12.59 21 11c0-4.97-4.03-9-9-9zm-3 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z'/%3E%3Cpath d='M14 11a2 2 0 1 1-4 0 2 2 0 0 1 4 0z' fill='black' opacity='0.1'/%3E%3Cpath d='M4 4l16 16' stroke='rgba(139, 69, 19, 0.15)' stroke-width='2'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='rgba(139, 69, 19, 0.15)'%3E%3Cpath d='M12 2c-4.97 0-9 4.03-9 9 0 1.59.45 3.08 1.23 4.37L2.5 17.13c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.74-1.74C7.34 18.65 9.56 20 12 20s4.66-1.35 6.35-3.2l1.74 1.74c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-1.73-1.76C20.55 14.08 21 12.59 21 11c0-4.97-4.03-9-9-9zm-3 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z'/%3E%3Cpath d='M14 11a2 2 0 1 1-4 0 2 2 0 0 1 4 0z' fill='black' opacity='0.1'/%3E%3Cpath d='M4 4l16 16' stroke='rgba(139, 69, 19, 0.15)' stroke-width='2'/%3E%3C/svg%3E"),
         radial-gradient(#dcc096 1px, transparent 1px);
     background-size: 50% auto, 20px 20px;
     background-repeat: no-repeat, repeat;
@@ -33,41 +33,26 @@ const dashboardStyles = `
     font-family: 'Georgia', serif;
   }
 
-  .tilt-image {
-    /* Use variables set by JS, default to 0 */
-    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(1.05);
-    transition: transform 0.1s ease-out; /* Fast transition for response */
-    will-change: transform;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-  }
-    
   @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
   .chat-bubble { animation: popIn 0.3s ease-out; }
 `;
 
 // --- 2. HELPER COMPONENTS ---
 
-// --- NEW: 3D TILT COVER COMPONENT ---
-// --- UPDATED 3D TILT COMPONENT (Performance Optimized) ---
+// 3D TILT COVER COMPONENT
 const TiltCover = ({ src, onClick }) => {
     const cardRef = useRef(null);
 
     const handleMove = (e) => {
         const card = cardRef.current;
         if (!card) return;
-        
         const { left, top, width, height } = card.getBoundingClientRect();
         const x = e.clientX - left;
         const y = e.clientY - top;
-        
         const centerX = width / 2;
         const centerY = height / 2;
-        
-        // Calculate rotation (Max 20 degrees)
         const rotateX = ((y - centerY) / centerY) * -20; 
         const rotateY = ((x - centerX) / centerX) * 20;
-
-        // Apply via CSS variables for smoothness
         card.style.setProperty('--rx', `${rotateX}deg`);
         card.style.setProperty('--ry', `${rotateY}deg`);
     };
@@ -87,12 +72,18 @@ const TiltCover = ({ src, onClick }) => {
             onMouseMove={handleMove}
             onMouseLeave={handleLeave}
             onClick={onClick}
-            style={{ perspective: '1000px' }} // Essential for 3D
+            style={{ perspective: '1000px' }}
         >
             <img 
                 src={src} 
                 alt="Cover" 
-                className="w-full h-full object-cover rounded-r-2xl shadow-lg tilt-image"
+                className="w-full h-full object-cover rounded-r-2xl shadow-lg"
+                style={{
+                    transform: 'rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(1.05)',
+                    transition: 'transform 0.1s ease-out',
+                    willChange: 'transform',
+                    boxShadow: '0 15px 35px rgba(0,0,0,0.3)'
+                }}
             />
         </div>
     );
@@ -172,14 +163,13 @@ const AILibrarian = ({ isOpen, toggle, books, darkMode }) => {
     const formatBookCard = (b) => {
         const statusIcon = (b.user !== null && b.user !== undefined) ? "🔴 Issued" : "🟢 Available";
         const author = b.author?.name || b.authorName || 'Unknown';
-        const summaryText = b.summary ? (b.summary.length > 120 ? b.summary.substring(0, 120) + "..." : b.summary) : "No summary available.";
-        return `📖 **${b.bookTitle}**\n✍️ By: ${author}\n🏷️ ${b.bookType} | ₹${b.securityAmount}\n🔖 Ref: ${b.bookNo}\nRunning Status: ${statusIcon}\n\n📝 **Synopsis:**\n_${summaryText}_`;
+        return `📖 **${b.bookTitle}**\n✍️ By: ${author}\n🏷️ ${b.bookType}\nRunning Status: ${statusIcon}`;
     };
 
     const generateResponse = (rawMsg, libraryBooks) => {
         const msg = rawMsg.toLowerCase().replace(/[?.,!]/g, '');
         if (!libraryBooks || libraryBooks.length === 0) return "I cannot access the archives. Data not loaded.";
-        if (['hi', 'hello', 'hey', 'greetings', 'yo'].some(w => msg.includes(w))) return "Hello! How can I assist you today?";
+        if (['hi', 'hello', 'hey'].some(w => msg.includes(w))) return "Hello! How can I assist you today?";
         if (msg.includes('fine') || msg.includes('cost')) return "💰 Policy: Fines apply after 14 days (e.g., ₹50/day).";
         
         const cleanKeyword = msg.replace(/(is|the|book|available|search|find|me|does|have|a|an|who|wrote|by|info|details|about)/g, '').trim();
@@ -224,18 +214,6 @@ const AILibrarian = ({ isOpen, toggle, books, darkMode }) => {
 };
 
 // --- 4. MODALS ---
-const ImagePreviewModal = ({ src, onClose }) => {
-    if (!src) return null;
-    return (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg animate-fade-in" onClick={onClose}>
-            <div className="relative max-w-4xl max-h-screen w-full flex justify-center">
-                <img src={src} alt="Full Cover" className="max-h-[80vh] max-w-full rounded-lg shadow-2xl object-contain" onClick={(e) => e.stopPropagation()} />
-                <button onClick={onClose} className="absolute top-0 right-0 m-4 p-2 bg-white/10 rounded-full text-white hover:bg-red-600 transition"><X className="w-8 h-8" /></button>
-            </div>
-        </div>
-    );
-};
-
 const PdfReaderModal = ({ url, onClose }) => {
     if (!url) return null;
     return (
@@ -259,12 +237,50 @@ const EditProfileModal = ({ user, onClose, onUpdate, darkMode }) => {
     return (<ModalWrapper title="Edit Profile" Icon={Edit2} color="purple" darkMode={darkMode}>{message && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded text-sm">{message}</div>}<div className="space-y-4"><div><label className="text-xs opacity-60">Full Name</label><input value={formData.name} onChange={e=>setFormData({...formData, name:e.target.value})} className={inputClass}/></div><div><label className="text-xs opacity-60">Phone</label><CountryPhoneInput value={formData.phoneNo} onChange={val=>setFormData({...formData, phoneNo:val})} darkMode={darkMode} /></div><div><label className="text-xs opacity-60">Address</label><input value={formData.address} onChange={e=>setFormData({...formData, address:e.target.value})} className={inputClass}/></div><div className="flex gap-2 mt-2"><button onClick={handleSubmit} className="flex-1 py-2 bg-purple-600 text-white rounded-lg font-bold">Save</button><button onClick={onClose} className={`flex-1 py-2 rounded-lg font-bold ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`}>Cancel</button></div></div></ModalWrapper>);
 };
 
-const QrPrintModal = ({ book, onClose, darkMode }) => { const downloadQr = () => { const canvas = document.getElementById("qr-code-canvas"); if(canvas) { const pngUrl = canvas.toDataURL("image/png"); const downloadLink = document.createElement("a"); const safeTitle = book.bookTitle.replace(/\s+/g, '_'); const safeAuthor = (book.author?.name || book.authorName || 'Unknown').replace(/\s+/g, '_'); downloadLink.href = pngUrl; downloadLink.download = `${safeTitle}_${safeAuthor}_${book.bookType}_${book.bookNo}.png`; document.body.appendChild(downloadLink); downloadLink.click(); document.body.removeChild(downloadLink); } }; return (<ModalWrapper title="Print Label" Icon={QrCode} color="purple" darkMode={darkMode}><div className="flex flex-col items-center justify-center space-y-6"><div className="bg-white p-4 rounded-xl shadow-lg transform hover:scale-105 transition duration-300"><QRCodeCanvas id="qr-code-canvas" value={book.bookNo} size={200} level={"H"} includeMargin={true} /></div><div className={`text-center ${darkMode ? 'text-white' : 'text-gray-800'}`}><h4 className="font-bold text-lg">{book.bookTitle}</h4><p className="opacity-60 font-mono text-sm mt-1">REF: {book.bookNo}</p></div><div className="flex gap-3 w-full"><button onClick={downloadQr} className="flex-1 py-3 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-white flex items-center justify-center gap-2"><Download className="w-4 h-4"/> PNG</button><button onClick={onClose} className={`flex-1 py-3 rounded-xl font-bold ${darkMode ? 'bg-white/10 text-white' : 'bg-gray-200 text-gray-800'}`}>Close</button></div></div></ModalWrapper>); };
+// --- 4. MODALS ---
+
+// --- NEW: IMAGE PREVIEW WITH 3D TILT ---
+const ImagePreviewModal = ({ src, onClose }) => {
+    const [rotate, setRotate] = useState({ x: 0, y: 0 });
+    
+    const handleMouseMove = (e) => {
+        const { width, height, left, top } = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - left;
+        const y = e.clientY - top;
+        const xPct = (x / width) - 0.5;
+        const yPct = (y / height) - 0.5;
+        // Sensitivity: 25 degrees
+        setRotate({ x: -yPct * 25, y: xPct * 25 });
+    };
+
+    if (!src) return null;
+    return (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg animate-fade-in" onClick={onClose}>
+            <div className="relative w-full max-w-xl flex justify-center perspective-[1000px]">
+                <img 
+                    src={src} 
+                    alt="Full Cover" 
+                    className="max-h-[85vh] max-w-full rounded-lg shadow-2xl object-contain transition-transform duration-75 ease-linear cursor-move"
+                    style={{
+                        transform: `rotateX(${rotate.x}deg) rotateY(${rotate.y}deg) scale(1.05)`,
+                        boxShadow: `${-rotate.y}px ${rotate.x}px 30px rgba(255,255,255,0.15)`
+                    }}
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={() => setRotate({x:0, y:0})}
+                    onClick={(e) => e.stopPropagation()} 
+                />
+                <button onClick={onClose} className="absolute -top-12 right-0 p-2 bg-white/10 rounded-full text-white hover:bg-red-600 transition"><X className="w-8 h-8" /></button>
+            </div>
+        </div>
+    );
+};
+
+const QrPrintModal = ({ book, onClose, darkMode }) => { const downloadQr = () => { const canvas = document.getElementById("qr-code-canvas"); if(canvas) { const pngUrl = canvas.toDataURL("image/png"); const downloadLink = document.createElement("a"); const safeTitle = book.bookTitle.replace(/\s+/g, '_'); const safeAuthor = (book.author?.name || book.authorName || 'Unknown').replace(/\s+/g, '_'); downloadLink.href = pngUrl; downloadLink.download = `LMS_${book.bookNo}.png`; document.body.appendChild(downloadLink); downloadLink.click(); document.body.removeChild(downloadLink); } }; return (<ModalWrapper title="Print Label" Icon={QrCode} color="purple" darkMode={darkMode}><div className="flex flex-col items-center justify-center space-y-6"><div className="bg-white p-4 rounded-xl shadow-lg transform hover:scale-105 transition duration-300"><QRCodeCanvas id="qr-code-canvas" value={book.bookNo} size={200} level={"H"} includeMargin={true} /></div><div className={`text-center ${darkMode ? 'text-white' : 'text-gray-800'}`}><h4 className="font-bold text-lg">{book.bookTitle}</h4><p className="opacity-60 font-mono text-sm mt-1">REF: {book.bookNo}</p></div><div className="flex gap-3 w-full"><button onClick={downloadQr} className="flex-1 py-3 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-white flex items-center justify-center gap-2"><Download className="w-4 h-4"/> PNG</button><button onClick={onClose} className={`flex-1 py-3 rounded-xl font-bold ${darkMode ? 'bg-white/10 text-white' : 'bg-gray-200 text-gray-800'}`}>Close</button></div></div></ModalWrapper>); };
 const BookDetailModal = ({ book, onClose }) => { if(!book) return null; return (<div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in" onClick={onClose}><div className="w-full max-w-lg relative transform transition-all hover:scale-[1.01]" onClick={e=>e.stopPropagation()}><div className="manuscript-paper p-12 relative min-h-[650px] flex flex-col"><div className="text-center border-b-2 border-[#2a150a]/40 pb-4 mb-6 relative z-10"><h2 className="text-4xl font-bold uppercase tracking-widest leading-tight">{book.bookTitle}</h2><div className="flex justify-center items-center gap-2 mt-3 italic text-lg"><Feather className="w-5 h-5"/><span>{book.author?.name||book.authorName||'Unknown Author'}</span></div></div><div className="flex-grow overflow-y-auto custom-scroll pr-4 relative z-10"><h4 className="text-sm font-bold uppercase tracking-widest opacity-70 mb-3">Synopsis</h4><p className="text-xl leading-relaxed text-justify font-serif">{book.summary||"The pages of this ancient tome are too charred to read a summary..."}</p></div><div className="mt-8 pt-4 border-t border-[#2a150a]/40 flex justify-between text-base font-bold relative z-10"><span className="bg-[#2a150a]/10 px-3 py-1 rounded-sm">Ref: {book.bookNo}</span><span className="bg-[#2a150a]/10 px-3 py-1 rounded-sm">Cost: ₹{book.securityAmount}</span></div><button onClick={onClose} className="absolute top-6 right-6 text-[#2a150a] hover:text-red-900 transition-colors hover:scale-110 z-20"><X className="w-8 h-8" strokeWidth={3}/></button></div></div></div>); };
 const AdminRegisterModal = ({ user, onClose, darkMode }) => { const [formData, setFormData] = useState({}); const [message, setMessage] = useState({}); const handleSubmit = async () => { try { const res = await api.registerAdmin(formData, user); if(res.ok){setMessage({type:'success',text:'Success'}); setTimeout(onClose,1000);} else {setMessage({type:'error',text:'Failed'});} } catch(e){setMessage({type:'error',text:'Error'});} }; const inputClass = `w-full px-4 py-2 rounded-lg border outline-none ${darkMode ? 'bg-black/30 border-white/10 text-white' : 'bg-gray-50 border-gray-300 text-gray-800'}`; return (<ModalWrapper title="New Admin" Icon={UserPlus} color="purple" darkMode={darkMode}><div className="space-y-3"><input placeholder="Name" className={inputClass} onChange={e=>setFormData({...formData,userName:e.target.value})}/><input placeholder="Email" className={inputClass} onChange={e=>setFormData({...formData,email:e.target.value})}/><CountryPhoneInput value={formData.phoneNo} onChange={val=>setFormData({...formData,phoneNo:val})} darkMode={darkMode}/><input placeholder="Address" className={inputClass} onChange={e=>setFormData({...formData,address:e.target.value})}/><input type="password" placeholder="Password" className={inputClass} onChange={e=>setFormData({...formData,password:e.target.value})}/><div className="flex gap-2 mt-4"><button onClick={handleSubmit} className="flex-1 py-2 bg-purple-600 text-white rounded-lg font-bold">Register</button><button onClick={onClose} className={`flex-1 py-2 rounded-lg font-bold ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`}>Cancel</button></div></div></ModalWrapper>); };
 const AddBookModal = ({ user, onClose, onSuccess, darkMode }) => { const [formData, setFormData] = useState({bookType:'PROGRAMMING'}); const [message, setMessage] = useState(''); const handleSubmit = async () => { try{const res=await api.addBook(user,{...formData, securityAmount:Number(formData.securityAmount)}); if(res.ok){setMessage('Added');setTimeout(()=>{onSuccess();onClose();},1000);}else{setMessage('Failed');}}catch(e){setMessage('Error');} }; const inputClass = `w-full px-4 py-2 rounded-lg border outline-none ${darkMode ? 'bg-black/30 border-white/10 text-white' : 'bg-gray-50 border-gray-300 text-gray-800'}`; return (<ModalWrapper title="Add Book" Icon={Plus} color="green" darkMode={darkMode}>{message && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded text-sm">{message}</div>}<div className="space-y-3"><input placeholder="Title" onChange={e=>setFormData({...formData,bookTitle:e.target.value})} className={inputClass}/><div className="flex gap-2"><input placeholder="Image URL" onChange={e=>setFormData({...formData,imageUrl:e.target.value})} className={`w-1/2 ${inputClass}`}/><input placeholder="PDF URL" onChange={e=>setFormData({...formData,pdfUrl:e.target.value})} className={`w-1/2 ${inputClass}`}/></div><div className="flex gap-2"><input placeholder="No" onChange={e=>setFormData({...formData,bookNo:e.target.value})} className={`w-1/2 ${inputClass}`}/><input placeholder="Price" onChange={e=>setFormData({...formData,securityAmount:e.target.value})} className={`w-1/2 ${inputClass}`}/></div><select onChange={e=>setFormData({...formData,bookType:e.target.value})} className={inputClass}><option value="PROGRAMMING">Programming</option><option value="HISTORY">History</option><option value="ENGLISH">English</option></select><input placeholder="Author" onChange={e=>setFormData({...formData,authorName:e.target.value})} className={inputClass}/><input placeholder="Author Email" onChange={e=>setFormData({...formData,authorEmail:e.target.value})} className={inputClass}/><textarea placeholder="Summary..." onChange={e=>setFormData({...formData,summary:e.target.value})} className={`h-20 ${inputClass}`}/><div className="flex gap-2"><button onClick={handleSubmit} className="flex-1 py-2 bg-green-600 text-white rounded-lg font-bold">Add</button><button onClick={onClose} className={`flex-1 py-2 rounded-lg font-bold ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`}>Cancel</button></div></div></ModalWrapper>); };
 const PaymentModal = ({ amount, onConfirm, onCancel }) => { const [processing, setProcessing] = useState(false); const handlePay = () => { setProcessing(true); setTimeout(() => { onConfirm(`pay_mock_${Math.random().toString(36).substr(2,9)}`); }, 2000); }; return (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><div className="bg-white rounded-2xl w-full max-w-sm p-6 relative"><h3 className="text-xl font-bold mb-4 text-black">Total: ₹{amount}</h3><button onClick={handlePay} disabled={processing} className="w-full py-3 bg-blue-600 text-white rounded font-bold">{processing ? "Processing..." : "Pay Now"}</button><button onClick={onCancel} className="w-full mt-2 text-gray-500">Cancel</button></div></div>); };
-const TransactionModal = ({ type, user, isAdmin, initialBookNo, onClose, onSuccess, books, darkMode }) => { const [formData, setFormData] = useState({userEmail:isAdmin?'':(user.email||user.username),bookNo:initialBookNo||''}); const [message, setMessage] = useState(''); const [showPayment, setShowPayment] = useState(false); const [amountToPay, setAmountToPay] = useState(0); const [scanMode, setScanMode] = useState(false); const handleScanResult = (result) => { if (result) { const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg'); audio.play().catch(e=>{}); setFormData(prev => ({ ...prev, bookNo: result?.text })); setScanMode(false); setMessage({ type: 'success', text: `Scanned: ${result?.text}` }); } }; const initiateTransaction = () => { if(!formData.userEmail || !formData.bookNo) { setMessage({ type: 'error', text: 'Fill fields' }); return; } if (type === 'issue') { const targetBook = books?.find(b => b.bookNo === formData.bookNo); const price = targetBook ? targetBook.securityAmount : 200; setAmountToPay(price); setShowPayment(true); } else { processTransaction(null); } }; const processTransaction = async (paymentId) => { setShowPayment(false); setMessage({ type: 'info', text: 'Processing...' }); try { const endpoint = type === 'issue' ? api.issueBook : api.returnBook; const response = await endpoint(user, { ...formData, paymentId }); if (response.ok) { const data = await response.json(); setMessage({ type: 'success', text: `Success!` }); setTimeout(() => { onSuccess(); onClose(); }, 2000); } else { const err = await response.text(); try { setMessage({ type: 'error', text: JSON.parse(err).message || err }); } catch(e) { setMessage({ type: 'error', text: err || 'Failed' }); } } } catch (err) { setMessage({ type: 'error', text: 'Connection error' }); } }; const inputClass = `w-full px-4 py-2 rounded-lg border outline-none ${darkMode ? 'bg-black/30 border-white/10 text-white' : 'bg-gray-50 border-gray-300 text-gray-800'}`; return (<>{showPayment && <PaymentModal amount={amountToPay} onConfirm={processTransaction} onCancel={() => setShowPayment(false)} />}{!showPayment && (<ModalWrapper title={`${type} Book`} Icon={type==='issue'?Sparkles:ArrowLeftRight} color="green" darkMode={darkMode}>{message.text && <div className={`mb-4 p-3 rounded-lg text-sm ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{message.text}</div>}{scanMode ? (<div className="relative h-64 bg-black rounded-lg overflow-hidden mb-4 border-2 border-green-500 shadow-lg"><QrReader onResult={handleScanResult} constraints={{ facingMode: 'environment' }} containerStyle={{ width: '100%', height: '100%' }} videoStyle={{ objectFit: 'cover' }} /><button onClick={() => setScanMode(false)} className="absolute top-2 right-2 p-2 bg-black/50 hover:bg-red-600/80 rounded-full text-white transition"><X className="w-4 h-4"/></button></div>) : (<div className="space-y-4"><input value={formData.userEmail} onChange={e => setFormData({...formData, userEmail: e.target.value})} readOnly={!isAdmin} className={`${inputClass} ${!isAdmin ? 'opacity-50' : ''}`} placeholder="Student Email" /><div className="flex gap-2"><input value={formData.bookNo} onChange={e => setFormData({...formData, bookNo: e.target.value})} className={inputClass} placeholder="Book No" />{isAdmin && !initialBookNo && <button onClick={() => setScanMode(true)} className="p-2.5 bg-purple-600 text-white rounded-lg"><Camera className="w-5 h-5"/></button>}</div><div className="flex gap-2 mt-4"><button onClick={initiateTransaction} className="flex-1 py-2 bg-blue-600 text-white rounded-lg font-bold capitalize">{type === 'issue' ? 'Pay & Issue' : 'Return'}</button><button onClick={onClose} className={`flex-1 py-2 rounded-lg font-bold ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`}>Cancel</button></div></div>)}</ModalWrapper>)}</>);};
+const TransactionModal = ({ type, user, isAdmin, initialBookNo, onClose, onSuccess, books, darkMode }) => { const [formData, setFormData] = useState({userEmail:isAdmin?'':(user.email||user.username),bookNo:initialBookNo||''}); const [message, setMessage] = useState(''); const [showPayment, setShowPayment] = useState(false); const [amountToPay, setAmountToPay] = useState(0); const [scanMode, setScanMode] = useState(false); const handleScanResult = (result) => { if (result) { const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg'); audio.play().catch(e=>{}); setFormData(prev => ({ ...prev, bookNo: result?.text })); setScanMode(false); setMessage({ type: 'success', text: `Scanned: ${result?.text}` }); } }; const initiateTransaction = () => { if(!formData.userEmail || !formData.bookNo) { setMessage({ type: 'error', text: 'Fill fields' }); return; } if (type === 'issue') { const targetBook = books?.find(b => b.bookNo === formData.bookNo); const price = targetBook ? targetBook.securityAmount : 200; setAmountToPay(price); setShowPayment(true); } else { processTransaction(null); } }; const processTransaction = async (paymentId) => { setShowPayment(false); setMessage({ type: 'info', text: 'Processing...' }); try { const endpoint = type === 'issue' ? api.issueBook : api.returnBook; const response = await endpoint(user, { ...formData, paymentId }); if (response.ok) { const data = await response.json(); setMessage({ type: 'success', text: `Success!` }); setTimeout(() => { onSuccess(); onClose(); }, 2000); } else { const err = await response.text(); try { setMessage({ type: 'error', text: JSON.parse(err).message || err }); } catch(e) { setMessage({ type: 'error', text: err || 'Failed' }); } } } catch (err) { setMessage({ type: 'error', text: 'Connection error' }); } }; const inputClass = `w-full px-4 py-2 rounded-lg border outline-none ${darkMode ? 'bg-black/30 border-white/10 text-white' : 'bg-gray-50 border-gray-300 text-gray-800'}`; return (<>{showPayment && <PaymentModal amount={amountToPay} onConfirm={processTransaction} onCancel={() => setShowPayment(false)} />}{!showPayment && (<ModalWrapper title={`${type} Book`} Icon={type==='issue'?Sparkles:ArrowLeftRight} color="green" darkMode={darkMode}>{message.text && <div className={`mb-4 p-3 rounded-lg text-sm ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{message.text}</div>}{scanMode ? (<div className="relative h-64 bg-black rounded-lg overflow-hidden mb-4 border-2 border-green-500 shadow-lg"><QrReader onResult={handleScanResult} constraints={{ facingMode: 'environment' }} containerStyle={{ width: '100%', height: '100%' }} videoStyle={{ objectFit: 'cover' }} /><button onClick={() => setScanMode(false)} className="absolute top-2 right-2 p-2 bg-black/50 hover:bg-red-600/80 rounded-full text-white transition"><X className="w-4 h-4"/></button></div>) : (<div className="space-y-4"><input value={formData.userEmail} onChange={e => setFormData({...formData, userEmail: e.target.value})} readOnly={!isAdmin} className={`${inputClass} ${!isAdmin ? 'opacity-50' : ''}`} placeholder="Student Email" /><div className="flex gap-2"><input value={formData.bookNo} onChange={e => setFormData({...formData, bookNo: e.target.value})} className={inputClass} placeholder="Book No" />{isAdmin && !initialBookNo && <button onClick={() => setScanMode(true)} className="p-2.5 bg-purple-600 text-white rounded-lg"><Camera className="w-5 h-5"/></button>}</div><div className="flex gap-2 mt-4"><button onClick={initiateTransaction} className="flex-1 py-2 bg-blue-600 text-white rounded-lg font-bold capitalize">{type === 'issue' ? 'Pay & Issue' : 'Return'}</button><button onClick={onClose} className={`flex-1 py-2 rounded-lg font-bold ${darkMode ? 'bg-white/10 text-white' : 'bg-gray-200 text-gray-800'}`}>Cancel</button></div></div>)}</ModalWrapper>)}</>);};
 
 // --- 5. MAIN DASHBOARD ---
 export const Dashboard = ({ user, onLogout }) => {
@@ -287,7 +303,7 @@ export const Dashboard = ({ user, onLogout }) => {
   const [transactionType, setTransactionType] = useState('issue');
   const [selectedBookNo, setSelectedBookNo] = useState('');
   const [viewingBook, setViewingBook] = useState(null);
-  const [previewImage, setPreviewImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null); // FOR IMAGE MODAL
   const [readingPdf, setReadingPdf] = useState(null);
   const [qrBook, setQrBook] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -318,13 +334,21 @@ export const Dashboard = ({ user, onLogout }) => {
   const fetchTransactions = async () => { setLoading(true); try { const res = await api.getTransactions(currentUser); if (res.ok) setTransactions(await res.json()); } catch (e) {} finally { setLoading(false); } };
   const fetchAnalytics = async () => { setLoading(true); try { const res = await api.getAnalytics(currentUser); if (res.ok) setAnalytics(await res.json()); } catch (e) {} finally { setLoading(false); } };
   const deleteBook = async (no) => { if(window.confirm(`Delete ${no}?`)) { await api.deleteBook(currentUser, no); fetchBooks(); } };
-
   const getActiveLoans = () => transactions.filter(t => t.transactionStatus === 'ISSUED' && t.user?.email === currentUser.email);
   const getTotalFines = () => transactions.filter(t => t.user?.email === currentUser.email && t.fineAmount > 0).reduce((acc, t) => acc + t.fineAmount, 0);
   const getPieData = () => analytics?.booksByType ? Object.keys(analytics.booksByType).map(key => ({ name: key, value: analytics.booksByType[key] })) : [];
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
   const handleUserUpdate = (updatedUser) => { setCurrentUser(prev => ({ ...prev, ...updatedUser })); };
   
+  const getBadges = () => {
+      const returnedCount = transactions.filter(t => t.transactionStatus === 'RETURNED' && t.user?.email === currentUser.email).length;
+      const badges = [];
+      if (returnedCount >= 1) badges.push({ label: 'Novice', icon: <Star className="w-4 h-4 text-yellow-400" />, color: 'bg-yellow-500/20' });
+      if (returnedCount >= 5) badges.push({ label: 'Bookworm', icon: <BookOpen className="w-4 h-4 text-blue-400" />, color: 'bg-blue-500/20' });
+      if (returnedCount >= 10) badges.push({ label: 'Scholar', icon: <Award className="w-4 h-4 text-purple-400" />, color: 'bg-purple-500/20' });
+      return badges;
+  };
+
   const handleCardAction = (book) => {
       const isMyBook = book.user?.email === currentUser.email;
       const isIssued = book.user !== null && book.user !== undefined;
@@ -364,10 +388,19 @@ export const Dashboard = ({ user, onLogout }) => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <GlassCard className="md:col-span-1" darkMode={darkMode}>
                           <div className="p-8 flex flex-col items-center text-center">
-                              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 p-1 mb-4 shadow-2xl"><div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden"><User className="w-10 h-10 text-white"/></div></div>
+                              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 p-1 mb-4 shadow-2xl relative group">
+                                  <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden"><User className="w-10 h-10 text-white"/></div>
+                              </div>
                               <h2 className="text-2xl font-bold">{currentUser.name || currentUser.username}</h2>
                               <p className="text-blue-500 text-sm mb-6">{currentUser.email}</p>
                               {/* FIX: RESTORED PROFILE DETAILS */}
+                              {!isAdmin && (
+                                  <div className="flex flex-wrap justify-center gap-2 mb-6">
+                                      {getBadges().length === 0 ? <span className="text-xs opacity-50 italic">Return books to earn badges!</span> : getBadges().map((b, i) => (
+                                          <div key={i} className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border border-white/10 ${b.color} text-white`}>{b.icon}{b.label}</div>
+                                      ))}
+                                  </div>
+                              )}
                               <div className="w-full space-y-3 mb-6">
                                   <div className={`flex justify-between text-sm p-3 rounded-lg border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-200'}`}><span className="opacity-60">Role</span><span className="font-semibold">{isAdmin ? "Administrator" : "Scholar"}</span></div>
                                   <div className={`flex justify-between text-sm p-3 rounded-lg border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-200'}`}><span className="opacity-60">Phone</span><span className="font-semibold">{currentUser.phoneNo || "N/A"}</span></div>
@@ -401,6 +434,7 @@ export const Dashboard = ({ user, onLogout }) => {
                   let btnText = "Issue"; let btnClass = "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg"; let isDisabled = false;
                   if (isMyBook) { btnText = "Issued"; btnClass = "bg-green-600 text-white cursor-default"; isDisabled = true; }
                   else if (isIssued) { if(isAdmin) { btnText = "Return"; btnClass = "bg-purple-600 text-white shadow-lg hover:bg-purple-500"; } else { btnText = "Not Available"; btnClass = "bg-black/30 text-gray-500 cursor-not-allowed border border-white/5"; isDisabled = true; } }
+                  
                   return (
                   <GlassCard key={book.id} onClick={() => setViewingBook(book)} darkMode={darkMode} className="hover:-translate-y-2 transition-transform duration-300 cursor-pointer">
                     <div className="p-6 flex flex-col h-full relative">
