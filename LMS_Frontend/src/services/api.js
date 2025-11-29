@@ -1,14 +1,6 @@
 const API_BASE_URL = 'http://localhost:8081';
 
 export const api = {
-  // Add this to your api object
-  getAnalytics: (auth) => {
-      const base64Credentials = btoa(`${auth.username}:${auth.password}`);
-      return fetch(`${API_BASE_URL}/analytics`, {
-        headers: { 'Authorization': `Basic ${base64Credentials}` }
-      });
-  },
-
   testConnection: async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/health`);
@@ -17,7 +9,30 @@ export const api = {
       return false;
     }
   },
+
+  // --- NEW: Forgot & Reset Password ---
+  forgotPassword: (email) => {
+    return fetch(`${API_BASE_URL}/auth/forgot-password?email=${email}`, {
+      method: 'POST'
+    });
+  },
+
+  resetPassword: (token, newPassword) => {
+    return fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword })
+    });
+  },
+  // ------------------------------------
   
+  getAnalytics: (auth) => {
+      const base64Credentials = btoa(`${auth.username}:${auth.password}`);
+      return fetch(`${API_BASE_URL}/analytics`, {
+        headers: { 'Authorization': `Basic ${base64Credentials}` }
+      });
+  },
+
   login: async (credentials) => {
     const base64Credentials = btoa(`${credentials.username}:${credentials.password}`);
     const response = await fetch(`${API_BASE_URL}/user/me`, {
@@ -71,13 +86,12 @@ export const api = {
     });
   },
 
-
   getBooks: (auth, title = '', type = '', author = '', status = '') => {
       const params = new URLSearchParams();
       if (title) params.append('title', title);
       if (type) params.append('type', type);
-      if (author) params.append('author', author); // New
-      if (status) params.append('status', status); // New
+      if (author) params.append('author', author);
+      if (status) params.append('status', status);
       
       const base64Credentials = btoa(`${auth.username}:${auth.password}`);
       return fetch(`${API_BASE_URL}/book/all?${params}`, {
@@ -97,7 +111,6 @@ export const api = {
     });
   },
 
-  // --- DELETE BOOK FUNCTION ---
   deleteBook: (auth, bookNo) => {
     const base64Credentials = btoa(`${auth.username}:${auth.password}`);
     return fetch(`${API_BASE_URL}/book/${bookNo}`, {
