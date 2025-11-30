@@ -1,4 +1,10 @@
-const API_BASE_URL = 'http://localhost:8081';
+// Webpack automatically replaces 'process.env.REACT_APP_API_URL' 
+// with the value from your .env file during the build.
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081';
+
+console.log("Using Backend URL:", API_BASE_URL);
+
+
 
 export const api = {
   testConnection: async () => {
@@ -24,8 +30,23 @@ export const api = {
       body: JSON.stringify({ token, newPassword })
     });
   },
-  // ------------------------------------
   
+
+
+  sendOtp: (phoneNo) => {
+    // Note: We expect the backend to return { otp: "123456", message: "..." } for the demo
+    return fetch(`${API_BASE_URL}/auth/send-otp?phoneNo=${encodeURIComponent(phoneNo)}`, {
+      method: 'POST'
+    });
+  },
+
+  verifyOtp: (phoneNo, otp) => {
+    return fetch(`${API_BASE_URL}/auth/verify-otp?phoneNo=${encodeURIComponent(phoneNo)}&otp=${otp}`, {
+      method: 'POST'
+    });
+  },
+
+
   getAnalytics: (auth) => {
       const base64Credentials = btoa(`${auth.username}:${auth.password}`);
       return fetch(`${API_BASE_URL}/analytics`, {

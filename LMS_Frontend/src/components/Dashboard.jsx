@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, LogOut, Search, Plus, Book, ArrowLeftRight, UserPlus, Clock, Trash2, Sparkles, User, Feather, X, QrCode, Download, TrendingUp, Users, PieChart as PieIcon, Edit2, ShieldCheck, Wallet, Camera, CreditCard, MessageSquare, Send, Sun, Moon, Image as ImageIcon, FileText, Mic, Star, Award, Zap } from 'lucide-react'; 
+import  { useState, useEffect, useRef } from 'react';
+import { BookOpen, LogOut, Search, Plus, Book, ArrowLeftRight, UserPlus, Clock, Trash2, Sparkles, User, Feather, X, QrCode, Download, TrendingUp, Users, PieChart as PieIcon, Edit2, ShieldCheck, Wallet, Camera, MessageSquare, Send, Sun, Moon, Image as ImageIcon, FileText, Star, Award} from 'lucide-react'; 
 import { api } from '../services/api';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { QRCodeCanvas } from 'qrcode.react'; 
@@ -310,11 +310,12 @@ export const Dashboard = ({ user, onLogout }) => {
 
   const isAdmin = (currentUser.userType === 'ADMIN') || (currentUser.authorities && currentUser.authorities.includes('ADMIN'));
 
-  useEffect(() => {
-    fetchBooks(); 
-    if (activeTab === 'transactions' || activeTab === 'profile') fetchTransactions();
-    if (activeTab === 'analytics' && isAdmin) fetchAnalytics();
-  }, [activeTab, searchType, searchAuthor, searchStatus]);
+    useEffect(() => {
+        fetchBooks(); 
+        if (activeTab === 'transactions' || activeTab === 'profile') fetchTransactions();
+        if (activeTab === 'analytics' && isAdmin) fetchAnalytics();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab, searchType, searchAuthor, searchStatus]);
 
   // --- FIX: Added Function to Calculate Due Time ---
   const calculateDueStatus = (issueDateStr) => {

@@ -1,11 +1,13 @@
 package com.example.Minor_Project.controller;
 
+import com.example.Minor_Project.service.OtpService;
 import com.example.Minor_Project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map; // <--- MAKE SURE THIS IS IMPORTED
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -14,6 +16,10 @@ public class AuthController {
     @Autowired
     UserService userService;
 
+    @Autowired
+    OtpService otpService;
+
+    // --- 1. EMAIL VERIFICATION (Existing) ---
     @GetMapping("/verify")
     public ResponseEntity<String> verifyAccount(@RequestParam("token") String token) {
         boolean success = userService.verifyUser(token);
@@ -24,7 +30,7 @@ public class AuthController {
         }
     }
 
-    // --- ENSURE THIS IS PRESENT ---
+    // --- 2. FORGOT PASSWORD (Existing) ---
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestParam("email") String email) {
         String response = userService.forgotPassword(email);
@@ -34,7 +40,7 @@ public class AuthController {
         return ResponseEntity.badRequest().body(response);
     }
 
-    // --- ENSURE THIS IS PRESENT ---
+    // --- 3. RESET PASSWORD (Existing) ---
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> payload) {
         String token = payload.get("token");
@@ -45,5 +51,29 @@ public class AuthController {
             return ResponseEntity.ok(response);
         }
         return ResponseEntity.badRequest().body(response);
+    }
+
+    // --- 4. SEND OTP (For Auto-fill) ---
+    @PostMapping("/send-otp")
+    public Map<String, String> sendOtp(@RequestParam String phoneNo) {
+        // This generates the number AND returns it
+        String generatedOtp = otpService.generateOtp(phoneNo);
+
+        // Return JSON so Frontend can grab the code
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "OTP sent successfully!");
+        response.put("otp", generatedOtp); // <--- The Frontend reads this for auto-fill
+
+        return response;
+    }
+
+    // --- 5. VERIFY OTP (THIS WAS MISSING) ---
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtp(@RequestParam String phoneNo, @RequestParam String otp) {
+        if (otpService.validateOtp(phoneNo, otp)) {
+            return ResponseEntity.ok("Phone Verified Successfully");
+        } else {
+            return ResponseEntity.badRequest().body("Invalid OTP");
+        }
     }
 }
