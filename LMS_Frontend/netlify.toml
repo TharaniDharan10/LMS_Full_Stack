@@ -1,8 +1,0 @@
-
-[build]
-  # CRITICAL: This explicitly tells Netlify to change directory first.
-  base = "LMS_Frontend"          
-  # This command is run AFTER changing to the base directory.
-  command = "npm run build"
-  # This is the final folder Netlify should deploy (located inside LMS_Frontend)
-  publish = "LMS_Frontend/build"
