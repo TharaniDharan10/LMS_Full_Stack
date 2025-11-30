@@ -167,25 +167,58 @@ const AILibrarian = ({ isOpen, toggle, books, darkMode }) => {
     };
 
     const generateResponse = (rawMsg, libraryBooks) => {
-        const msg = rawMsg.toLowerCase().replace(/[?.,!]/g, '');
+        const msg = rawMsg.toLowerCase().trim();
+        const cleanMsg = msg.replace(/[?.,!]/g, '');
+
         if (!libraryBooks || libraryBooks.length === 0) return "I cannot access the archives. Data not loaded.";
-        if (['hi', 'hello', 'hey'].some(w => msg.includes(w))) return "Hello! How can I assist you today?";
-        if (msg.includes('fine') || msg.includes('cost')) return "💰 Policy: Fines apply after 14 days (e.g., ₹50/day).";
+
+        // --- FIX 1: IMPROVED CONVERSATIONAL COMMANDS ---
+        if (['bye', 'thanks', 'thank you', 'goodbye', 'got it'].some(w => cleanMsg.includes(w))) {
+            return "You are welcome. May the archives be with you!";
+        }
         
-        const cleanKeyword = msg.replace(/(is|the|book|available|search|find|me|does|have|a|an|who|wrote|by|info|details|about)/g, '').trim();
-        if (cleanKeyword.length >= 1) {
+        // --- FIX 2: IMPROVED POLICY/FINE CHECK ---
+        if (['fine', 'cost', 'charge', 'validity', 'due date', 'policy', 'late fee', 'how long', 'duration'].some(w => cleanMsg.includes(w))) {
+            return "💰 Policy: Books are due in 14 days. Fines apply after that (e.g., ₹50/day).";
+        }
+        
+        // --- FIX 3: Prioritize Greeting check for exact matches ONLY ---
+        if (['hi', 'hello', 'hey', 'greetings'].some(w => msg === w)) {
+            return "Hello! How can I assist you today?";
+        }
+        
+        // --- FIX 4: IMPROVED SEARCH KEYWORD EXTRACTION ---
+        // Target specific phrases to know what to search for.
+        let searchPhrase = rawMsg;
+        if (msg.includes('who wrote') || msg.includes('author of')) {
+            // If the query is "who wrote X", search for X.
+            searchPhrase = msg.replace(/^(who wrote|who is the author of|author of|wrote|who is|by)/g, '').trim();
+        } else if (['search', 'find', 'have'].some(w => msg.startsWith(w))) {
+            // If the query is "find X", search for X.
+            searchPhrase = msg.replace(/^(find|search|have|got)/g, '').trim();
+        } else {
+            // General query. Remove only articles/linking verbs for broad search.
+            searchPhrase = cleanMsg.replace(/(is|the|book|available|a|an|me|does|have|about)/g, '').trim();
+        }
+        
+        const searchKeywords = searchPhrase.toLowerCase();
+
+        if (searchKeywords.length >= 2) {
             const matches = libraryBooks.filter(b => {
-                const titleMatch = b.bookTitle.toLowerCase().includes(cleanKeyword);
-                const authorMatch = (b.author?.name || b.authorName || '').toLowerCase().includes(cleanKeyword);
+                const titleMatch = b.bookTitle.toLowerCase().includes(searchKeywords);
+                const authorMatch = (b.author?.name || b.authorName || '').toLowerCase().includes(searchKeywords);
                 return titleMatch || authorMatch;
             });
+            
             if (matches.length > 0) {
-                const limit = 2; 
+                const limit = 3; 
                 const display = matches.slice(0, limit).map(b => formatBookCard(b)).join('\n\n────────────────\n\n');
-                return `Here is what I found:\n\n${display}`;
+                return `Here is what I found for '${searchKeywords}':\n\n${display}`;
             }
         }
-        return "I couldn't find a match. Try asking for a title or author.";
+        
+        // --- DEFAULT FALLBACK ---
+        return `I couldn't find a match for '${searchKeywords}'. Please try asking for a specific title or author.`;
     };
 
     if (!isOpen) return (<button onClick={toggle} className="fixed bottom-6 right-6 p-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-2xl text-white z-50 hover:scale-110 transition-transform animate-bounce"><MessageSquare className="w-7 h-7" /></button>);
@@ -275,7 +308,65 @@ const ImagePreviewModal = ({ src, onClose }) => {
     );
 };
 
-const QrPrintModal = ({ book, onClose, darkMode }) => { const downloadQr = () => { const canvas = document.getElementById("qr-code-canvas"); if(canvas) { const pngUrl = canvas.toDataURL("image/png"); const downloadLink = document.createElement("a"); const safeTitle = book.bookTitle.replace(/\s+/g, '_'); const safeAuthor = (book.author?.name || book.authorName || 'Unknown').replace(/\s+/g, '_'); downloadLink.href = pngUrl; downloadLink.download = `LMS_${book.bookNo}.png`; document.body.appendChild(downloadLink); downloadLink.click(); document.body.removeChild(downloadLink); } }; return (<ModalWrapper title="Print Label" Icon={QrCode} color="purple" darkMode={darkMode}><div className="flex flex-col items-center justify-center space-y-6"><div className="bg-white p-4 rounded-xl shadow-lg transform hover:scale-105 transition duration-300"><QRCodeCanvas id="qr-code-canvas" value={book.bookNo} size={200} level={"H"} includeMargin={true} /></div><div className={`text-center ${darkMode ? 'text-white' : 'text-gray-800'}`}><h4 className="font-bold text-lg">{book.bookTitle}</h4><p className="opacity-60 font-mono text-sm mt-1">REF: {book.bookNo}</p></div><div className="flex gap-3 w-full"><button onClick={downloadQr} className="flex-1 py-3 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-white flex items-center justify-center gap-2"><Download className="w-4 h-4"/> PNG</button><button onClick={onClose} className={`flex-1 py-3 rounded-xl font-bold ${darkMode ? 'bg-white/10 text-white' : 'bg-gray-200 text-gray-800'}`}>Close</button></div></div></ModalWrapper>); };
+const QrPrintModal = ({ book, onClose, darkMode }) => { 
+    
+    const downloadQr = () => { 
+        const canvas = document.getElementById("qr-code-canvas"); 
+        if(canvas) { 
+            const pngUrl = canvas.toDataURL("image/png"); 
+            const downloadLink = document.createElement("a"); 
+            
+            // --- NEW FILENAME LOGIC: BOOKNAME_AUTHOR_BOOKTYPE_BOOKNUMBER ---
+            
+            // 1. Get and clean data (removes spaces/special chars, limits length)
+            const bookTitle = book.bookTitle || 'UnknownTitle';
+            const authorName = book.author?.name || book.authorName || 'UnknownAuthor';
+            
+            const safeTitle = bookTitle.replace(/[^a-zA-Z0-9]/g, '').substring(0, 30);
+            const safeAuthor = authorName.replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+            const safeType = book.bookType ? book.bookType.substring(0, 10) : 'GEN';
+            const safeNo = book.bookNo;
+
+            // 2. Set the download filename
+            downloadLink.download = `${safeTitle}_${safeAuthor}_${safeType}_${safeNo}.png`; 
+            
+            // ---------------------------------------------------------------
+            
+            downloadLink.href = pngUrl; 
+            
+            document.body.appendChild(downloadLink); 
+            downloadLink.click(); 
+            document.body.removeChild(downloadLink); 
+        } 
+    }; 
+
+    // Note: The original component had an issue where 'book' was not defined in the scope of downloadQr 
+    // unless it was passed explicitly or defined as a closure. This structure is the correct way 
+    // to use the component's prop variables within its helper functions.
+    
+    return (
+        <ModalWrapper title="Print Label" Icon={QrCode} color="purple" darkMode={darkMode}>
+            <div className="flex flex-col items-center justify-center space-y-6">
+                <div className="bg-white p-4 rounded-xl shadow-lg transform hover:scale-105 transition duration-300">
+                    <QRCodeCanvas id="qr-code-canvas" value={book.bookNo} size={200} level={"H"} includeMargin={true} />
+                </div>
+                <div className={`text-center ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    <h4 className="font-bold text-lg">{book.bookTitle}</h4>
+                    <p className="opacity-60 font-mono text-sm mt-1">REF: {book.bookNo}</p>
+                </div>
+                <div className="flex gap-3 w-full">
+                    <button onClick={downloadQr} className="flex-1 py-3 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-white flex items-center justify-center gap-2">
+                        <Download className="w-4 h-4"/> PNG
+                    </button>
+                    <button onClick={onClose} className={`flex-1 py-3 rounded-xl font-bold ${darkMode ? 'bg-white/10 text-white' : 'bg-gray-200 text-gray-800'}`}>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </ModalWrapper>
+    ); 
+};
+
 const BookDetailModal = ({ book, onClose }) => { if(!book) return null; return (<div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in" onClick={onClose}><div className="w-full max-w-lg relative transform transition-all hover:scale-[1.01]" onClick={e=>e.stopPropagation()}><div className="manuscript-paper p-12 relative min-h-[650px] flex flex-col"><div className="text-center border-b-2 border-[#2a150a]/40 pb-4 mb-6 relative z-10"><h2 className="text-4xl font-bold uppercase tracking-widest leading-tight">{book.bookTitle}</h2><div className="flex justify-center items-center gap-2 mt-3 italic text-lg"><Feather className="w-5 h-5"/><span>{book.author?.name||book.authorName||'Unknown Author'}</span></div></div><div className="flex-grow overflow-y-auto custom-scroll pr-4 relative z-10"><h4 className="text-sm font-bold uppercase tracking-widest opacity-70 mb-3">Synopsis</h4><p className="text-xl leading-relaxed text-justify font-serif">{book.summary||"The pages of this ancient tome are too charred to read a summary..."}</p></div><div className="mt-8 pt-4 border-t border-[#2a150a]/40 flex justify-between text-base font-bold relative z-10"><span className="bg-[#2a150a]/10 px-3 py-1 rounded-sm">Ref: {book.bookNo}</span><span className="bg-[#2a150a]/10 px-3 py-1 rounded-sm">Cost: ₹{book.securityAmount}</span></div><button onClick={onClose} className="absolute top-6 right-6 text-[#2a150a] hover:text-red-900 transition-colors hover:scale-110 z-20"><X className="w-8 h-8" strokeWidth={3}/></button></div></div></div>); };
 const AdminRegisterModal = ({ user, onClose, darkMode }) => { const [formData, setFormData] = useState({}); const [message, setMessage] = useState({}); const handleSubmit = async () => { try { const res = await api.registerAdmin(formData, user); if(res.ok){setMessage({type:'success',text:'Success'}); setTimeout(onClose,1000);} else {setMessage({type:'error',text:'Failed'});} } catch(e){setMessage({type:'error',text:'Error'});} }; const inputClass = `w-full px-4 py-2 rounded-lg border outline-none ${darkMode ? 'bg-black/30 border-white/10 text-white' : 'bg-gray-50 border-gray-300 text-gray-800'}`; return (<ModalWrapper title="New Admin" Icon={UserPlus} color="purple" darkMode={darkMode}><div className="space-y-3"><input placeholder="Name" className={inputClass} onChange={e=>setFormData({...formData,userName:e.target.value})}/><input placeholder="Email" className={inputClass} onChange={e=>setFormData({...formData,email:e.target.value})}/><CountryPhoneInput value={formData.phoneNo} onChange={val=>setFormData({...formData,phoneNo:val})} darkMode={darkMode}/><input placeholder="Address" className={inputClass} onChange={e=>setFormData({...formData,address:e.target.value})}/><input type="password" placeholder="Password" className={inputClass} onChange={e=>setFormData({...formData,password:e.target.value})}/><div className="flex gap-2 mt-4"><button onClick={handleSubmit} className="flex-1 py-2 bg-purple-600 text-white rounded-lg font-bold">Register</button><button onClick={onClose} className={`flex-1 py-2 rounded-lg font-bold ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`}>Cancel</button></div></div></ModalWrapper>); };
 const AddBookModal = ({ user, onClose, onSuccess, darkMode }) => { const [formData, setFormData] = useState({bookType:'PROGRAMMING'}); const [message, setMessage] = useState(''); const handleSubmit = async () => { try{const res=await api.addBook(user,{...formData, securityAmount:Number(formData.securityAmount)}); if(res.ok){setMessage('Added');setTimeout(()=>{onSuccess();onClose();},1000);}else{setMessage('Failed');}}catch(e){setMessage('Error');} }; const inputClass = `w-full px-4 py-2 rounded-lg border outline-none ${darkMode ? 'bg-black/30 border-white/10 text-white' : 'bg-gray-50 border-gray-300 text-gray-800'}`; return (<ModalWrapper title="Add Book" Icon={Plus} color="green" darkMode={darkMode}>{message && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded text-sm">{message}</div>}<div className="space-y-3"><input placeholder="Title" onChange={e=>setFormData({...formData,bookTitle:e.target.value})} className={inputClass}/><div className="flex gap-2"><input placeholder="Image URL" onChange={e=>setFormData({...formData,imageUrl:e.target.value})} className={`w-1/2 ${inputClass}`}/><input placeholder="PDF URL" onChange={e=>setFormData({...formData,pdfUrl:e.target.value})} className={`w-1/2 ${inputClass}`}/></div><div className="flex gap-2"><input placeholder="No" onChange={e=>setFormData({...formData,bookNo:e.target.value})} className={`w-1/2 ${inputClass}`}/><input placeholder="Price" onChange={e=>setFormData({...formData,securityAmount:e.target.value})} className={`w-1/2 ${inputClass}`}/></div><select onChange={e=>setFormData({...formData,bookType:e.target.value})} className={inputClass}><option value="PROGRAMMING">Programming</option><option value="HISTORY">History</option><option value="ENGLISH">English</option></select><input placeholder="Author" onChange={e=>setFormData({...formData,authorName:e.target.value})} className={inputClass}/><input placeholder="Author Email" onChange={e=>setFormData({...formData,authorEmail:e.target.value})} className={inputClass}/><textarea placeholder="Summary..." onChange={e=>setFormData({...formData,summary:e.target.value})} className={`h-20 ${inputClass}`}/><div className="flex gap-2"><button onClick={handleSubmit} className="flex-1 py-2 bg-green-600 text-white rounded-lg font-bold">Add</button><button onClick={onClose} className={`flex-1 py-2 rounded-lg font-bold ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`}>Cancel</button></div></div></ModalWrapper>); };

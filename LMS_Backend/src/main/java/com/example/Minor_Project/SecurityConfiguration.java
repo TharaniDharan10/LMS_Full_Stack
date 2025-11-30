@@ -52,45 +52,6 @@
 //}
 
 
-package com.example.Minor_Project;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-
-@Configuration
-public class SecurityConfiguration {
-
-    @Bean
-    public PasswordEncoder getEncoder(){
-//        return NoOpPasswordEncoder.getInstance();
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
 
 //    @Bean
 //    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -133,40 +94,90 @@ public class SecurityConfiguration {
 //        return http.build();
 //    }
 
+package com.example.Minor_Project;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+
+@Configuration
+public class SecurityConfiguration {
+
+    @Bean
+    public PasswordEncoder getEncoder(){
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
+                        // 1. Public Endpoints
                         .requestMatchers("/health", "/test-auth", "/debug/**").permitAll()
-                        .requestMatchers("/user/student").permitAll() // Public student registration
+                        .requestMatchers("/user/student").permitAll()
+                        .requestMatchers("/auth/**").permitAll() // Must be public for OTP/Login
 
-                        // Admin only
-                        .requestMatchers("/user/admin").hasAuthority("ADMIN")
-                        .requestMatchers("/transaction/return").hasAuthority("ADMIN")
-                        .requestMatchers("/book").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/book/**").hasAuthority("ADMIN")
+                        // 2. Admin Only
+                        .requestMatchers("/user/admin").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/transaction/return").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/book").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/book/**").hasAuthority("ROLE_ADMIN")
 
+                        // 3. Shared Access
+                        .requestMatchers("/transaction/issue").hasAnyAuthority("STUDENT", "ROLE_ADMIN")
 
-                        // Authenticated User Details (NEW)
+                        // 4. Authenticated Endpoints
                         .requestMatchers("/user/me", "/transaction/history").authenticated()
-
-
-                        // Student specific
-                        .requestMatchers("/transaction/issue").hasAnyAuthority("STUDENT", "ADMIN")
                         .requestMatchers("/book/all").authenticated()
-                        .requestMatchers("/auth/**").permitAll()
 
+                        // 5. Catch-All
                         .anyRequest().authenticated()
                 )
-                // ... rest of configuration (httpBasic, session, csrf) remains the same
                 .httpBasic(basic -> basic
                         .realmName("Library Management System")
+                        // ... inside securityFilterChain .httpBasic() ...
+
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(401);
                             response.setContentType("application/json");
-                            response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"Invalid credentials\"}");
+
+                            String errorMessage = authException.getMessage();
+
+                            // DEBUG: Print this to your IntelliJ console to see what Spring is actually throwing
+                            System.out.println("Login Error: " + errorMessage);
+
+                            // If Spring masked it as "Bad credentials", show generic error.
+                            // BUT if it is "Email not verified" (DisabledException), show that!
+                            if(errorMessage.equalsIgnoreCase("Bad credentials")) {
+                                errorMessage = "Invalid username or password";
+                            }
+
+                            response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"" + errorMessage + "\"}");
                         })
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

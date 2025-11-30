@@ -28,7 +28,7 @@ public class Book implements Serializable {  //we implement Serialisable with al
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
 
-    @Column(length = 30)
+    @Column(length = 70)
     String bookTitle;
 
     @Column(length = 10,nullable = false,unique = true)

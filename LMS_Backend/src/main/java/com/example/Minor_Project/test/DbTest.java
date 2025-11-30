@@ -11,7 +11,7 @@ public class DbTest {
         String port = "22173";
         String database = "defaultdb";
         String user = "avnadmin";
-        String password = ;
+        String password = "";
 
         // 2. Construct the URL
         // We use verifyServerCertificate=false for the FIRST test to bypass the complex CA import steps.

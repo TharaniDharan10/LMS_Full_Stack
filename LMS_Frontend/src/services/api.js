@@ -55,7 +55,10 @@ export const api = {
   },
 
   login: async (credentials) => {
+    // 1. Create Base64 Auth Header
     const base64Credentials = btoa(`${credentials.username}:${credentials.password}`);
+    
+    // 2. Send Request
     const response = await fetch(`${API_BASE_URL}/user/me`, {
       method: 'GET',
       headers: {
@@ -64,6 +67,7 @@ export const api = {
       }
     });
 
+    // 3. Handle Success
     if (response.ok) {
       const userDetails = await response.json();
       return {
@@ -73,8 +77,18 @@ export const api = {
         authenticated: true
       };
     }
+
+    // 4. HANDLE ERRORS (CRITICAL CHANGE HERE)
+    // We try to parse the JSON backend sent us: {"message": "Email not verified..."}
+    const errorData = await response.json().catch(() => ({})); 
+    
+    if (errorData.message) {
+        throw new Error(errorData.message); // <--- This throws "Email not verified..."
+    }
+    
+    // Fallback for other errors
     if (response.status === 401) throw new Error('Invalid username or password');
-    throw new Error('Login failed');
+    throw new Error('Login failed. Please check connection.');
   },
   
   registerStudent: (data) => fetch(`${API_BASE_URL}/user/student`, {
