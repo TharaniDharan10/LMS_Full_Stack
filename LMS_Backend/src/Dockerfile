@@ -16,7 +16,7 @@ FROM eclipse-temurin:21-jre-alpine
 
 # Copy the built JAR file from the builder stage
 # You must verify this JAR name: Minor_Project-0.0.1-SNAPSHOT.jar
-COPY --from=builder /app/target/Minor_Project-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY --from=builder /app/target/*.jar /app/app.jar
 
 # Define the entry point to run the executable JAR
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
