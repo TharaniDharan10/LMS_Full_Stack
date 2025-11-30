@@ -1,9 +1,9 @@
+# In netlify.toml
+
 [build]
-  # Sets the working directory for all commands
-  base = "LMS_Frontend" 
-
-  # Runs the standard build command inside LMS_Frontend
-  command = "npm run build"
-
-  # Specifies the folder to publish, relative to the base directory
+  base = "LMS_Frontend"
+  
+  # FIX: Use npm install with the legacy flag before running the build
+  command = "npm install --legacy-peer-deps && npm run build" 
+  
   publish = "build"
