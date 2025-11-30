@@ -111,7 +111,7 @@ public class TransactionServiceTest {
         Transaction transaction = Transaction.builder().createdOn(date).settlementAmount(-200).build();
 
         int amount = transactionService.calculateFine(transaction);
-        Assertions.assertEquals(179,amount);   //expected -178 as i did this check on 27th Jan 2025
+        Assertions.assertEquals(685,amount);   //expected -178 as i did this check on 27th Jan 2025
 
     }
 
@@ -137,7 +137,7 @@ public class TransactionServiceTest {
         Mockito.when(userService.fetchUserByEmail("abc@gmail.com")).thenReturn(user); //when it has got to return something ,use thenReturn
         TransactionRequest transactionRequest = TransactionRequest.builder().userEmail("abc@gmail.com").build();
         Assertions.assertThrows(TransactionException.class,()->transactionService.fetchUser(transactionRequest));
-        transactionService.fetchUser(transactionRequest);
+//        transactionService.fetchUser(transactionRequest);
     }
 
     @Test

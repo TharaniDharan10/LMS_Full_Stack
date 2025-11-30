@@ -11,7 +11,7 @@ import java.util.Comparator;
 public interface AuthorRepository extends JpaRepository<Author,Integer> {
     //Query type 1(NativeQuery)
 // CHANGE THE QUERY VALUE TO USE CAPITAL 'A'
-    @Query(value = "SELECT * FROM Author WHERE email = ?", nativeQuery = true)
+    @Query(value = "SELECT * FROM AUTHOR WHERE email = ?", nativeQuery = true)
     Author fetchAuthorByEmailByNativeQuery(String email);
 
 
